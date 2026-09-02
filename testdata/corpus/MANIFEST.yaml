@@ -46,3 +46,23 @@ adversarial:
   asterisk*star.png:            glob character
   pipe|char.png:                shell pipe
   newline-in-name.png:          literal newline inside the filename
+
+ocr:
+  # Rendered from known text, so OCR accuracy is measured against real
+  # ground truth. <name>.txt is the exact text in all three renderings.
+  notice-clean.png:   a clean scan of the notice passage
+  notice-photo.jpg:   the same page skewed, unevenly lit and noisy
+  notice-lowres.jpg:  the same page at a third of the resolution
+  notice.txt:         ground truth for the three above
+  receipt-clean.png:   a clean scan of the receipt passage
+  receipt-photo.jpg:   the same page skewed, unevenly lit and noisy
+  receipt-lowres.jpg:  the same page at a third of the resolution
+  receipt.txt:         ground truth for the three above
+  letter-clean.png:   a clean scan of the letter passage
+  letter-photo.jpg:   the same page skewed, unevenly lit and noisy
+  letter-lowres.jpg:  the same page at a third of the resolution
+  letter.txt:         ground truth for the three above
+  instructions-clean.png:   a clean scan of the instructions passage
+  instructions-photo.jpg:   the same page skewed, unevenly lit and noisy
+  instructions-lowres.jpg:  the same page at a third of the resolution
+  instructions.txt:         ground truth for the three above

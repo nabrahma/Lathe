@@ -1,0 +1,69 @@
+{
+  "summaryBySubset": {
+    "clean": 1,
+    "lowres": 0.9990196078431373,
+    "photo": 1
+  },
+  "files": [
+    {
+      "subset": "clean",
+      "file": "instructions-clean.png",
+      "accuracy": 1
+    },
+    {
+      "subset": "lowres",
+      "file": "instructions-lowres.jpg",
+      "accuracy": 1
+    },
+    {
+      "subset": "photo",
+      "file": "instructions-photo.jpg",
+      "accuracy": 1
+    },
+    {
+      "subset": "clean",
+      "file": "letter-clean.png",
+      "accuracy": 1
+    },
+    {
+      "subset": "lowres",
+      "file": "letter-lowres.jpg",
+      "accuracy": 1
+    },
+    {
+      "subset": "photo",
+      "file": "letter-photo.jpg",
+      "accuracy": 1
+    },
+    {
+      "subset": "clean",
+      "file": "notice-clean.png",
+      "accuracy": 1
+    },
+    {
+      "subset": "lowres",
+      "file": "notice-lowres.jpg",
+      "accuracy": 0.996078431372549
+    },
+    {
+      "subset": "photo",
+      "file": "notice-photo.jpg",
+      "accuracy": 1
+    },
+    {
+      "subset": "clean",
+      "file": "receipt-clean.png",
+      "accuracy": 1
+    },
+    {
+      "subset": "lowres",
+      "file": "receipt-lowres.jpg",
+      "accuracy": 1
+    },
+    {
+      "subset": "photo",
+      "file": "receipt-photo.jpg",
+      "accuracy": 1
+    }
+  ]
+}

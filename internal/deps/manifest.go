@@ -35,6 +35,12 @@ func ffmpeg() Component {
 		Version:        ffmpegVersion,
 		Binaries:       []string{"ffmpeg", "ffprobe"},
 		VersionArgs:    []string{"-version"},
+		// An FFmpeg already on the machine is used as-is; the download is only
+		// for people who do not have one.
+		SearchPaths: []string{
+			"/usr/bin", "/usr/local/bin", "/opt/homebrew/bin", "/snap/bin",
+			`C:\Program Files\ffmpeg\bin`,
+		},
 
 		Sources: map[string]Source{
 			"windows/amd64": {

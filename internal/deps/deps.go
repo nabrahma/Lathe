@@ -333,11 +333,10 @@ func (m *manager) BinaryPath(componentID, binary string) (string, error) {
 		}
 	}
 
-	if c.SystemOnly {
-		if found, ok := findOnSystem(binary+c.winExt(), c.SearchPaths); ok {
-			return found, nil
-		}
-		return "", fmt.Errorf("%w: %s", ErrNotInstalled, c.DisplayName)
+	// Then an existing system installation. Someone who already has FFmpeg
+	// should not be asked to download a second copy of it.
+	if found, ok := findOnSystem(binary+c.winExt(), c.SearchPaths); ok {
+		return found, nil
 	}
 	return "", fmt.Errorf("%w: %s", ErrNotInstalled, c.DisplayName)
 }

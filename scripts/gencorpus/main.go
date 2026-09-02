@@ -61,6 +61,9 @@ func run() error {
 	if err := writeAdversarial(); err != nil {
 		return err
 	}
+	if err := writeOCRCorpus(); err != nil {
+		return err
+	}
 	return writeManifest()
 }
 
@@ -304,7 +307,7 @@ adversarial:
   pipe|char.png:                shell pipe
   newline-in-name.png:          literal newline inside the filename
 `
-	return os.WriteFile(filepath.Join(root, "MANIFEST.yaml"), []byte(manifest), 0o644)
+	return os.WriteFile(filepath.Join(root, "MANIFEST.yaml"), []byte(manifest+ocrManifest()), 0o644)
 }
 
 func writePNG(path string, img image.Image) error {
