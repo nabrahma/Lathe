@@ -1,0 +1,278 @@
+/*
+ * Deleting the browser.
+ *
+ * "It feels like Electron" is never a complaint about the rendering engine,
+ * which is invisible. It is a complaint about webbiness: browser behaviours
+ * leaking into something that is supposed to be an application. That is a
+ * finite list, and this file is it. It lands before any component is built, so
+ * every component inherits it rather than needing a retrofit.
+ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  /* Zero radius everywhere is the single most identity-defining constraint in
+     the system. Nothing in a workshop has a 12px border-radius. */
+  border-radius: var(--r);
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+html {
+  /* Ctrl+scroll zooming the whole interface is a browser behaviour, not an
+     application one. */
+  touch-action: manipulation;
+}
+
+body {
+  background: var(--ink-000);
+  color: var(--fg);
+  font: 400 0.9375rem / 1.55 var(--sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+
+  /* No rubber-band overscroll: a native window does not bounce. */
+  overscroll-behavior: none;
+  overflow: hidden;
+
+  /* Chrome is not selectable text. The exceptions are opted back in below. */
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: default;
+}
+
+/* The only places text may be selected: things a person needs to copy. */
+.selectable,
+.filename,
+.ocr-output,
+.error-detail,
+input,
+textarea {
+  user-select: text;
+  -webkit-user-select: text;
+  cursor: text;
+}
+
+/* Native applications do not use the hand cursor on buttons. */
+button,
+[role="button"],
+a,
+summary {
+  cursor: default;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+input,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+/*
+ * Focus. The square yellow ring replaces Chrome's rounded blue one, and it is
+ * also the accessibility requirement: highly visible, never removed.
+ */
+:focus {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--hi);
+  outline-offset: 2px;
+}
+
+/* Custom scrollbars, thin and overlay-style, matching the structural tokens. */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--line);
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--fg-low);
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+}
+
+/* Selection uses the accent, at a weight that does not shout. */
+::selection {
+  background: var(--hi-dim);
+  color: var(--ink-000);
+}
+
+/* Transitions are capped and only ever answer a user action. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+/*
+ * Layout primitives.
+ */
+
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--ink-000);
+}
+
+.scroll {
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex: 1;
+  min-height: 0;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-3);
+}
+
+.col {
+  display: flex;
+  flex-direction: column;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.hidden {
+  display: none;
+}
+
+/*
+ * Section label: "/ COMPRESS PDF". Slashes are the native punctuation of a
+ * file tool, and this is directory notation.
+ */
+.section-label {
+  font: 500 0.75rem / 1.2 var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-mid);
+  display: flex;
+  align-items: center;
+  gap: var(--gap-2);
+}
+
+.section-label::before {
+  content: "/";
+  color: var(--hi-dim);
+}
+
+/*
+ * Elevation is a background step plus a hairline, never a shadow. Shadows read
+ * as soft; this product is not soft.
+ */
+.panel {
+  background: var(--ink-100);
+  border: var(--hair) solid var(--line);
+}
+
+.card {
+  background: var(--ink-200);
+  border: var(--hair) solid var(--line);
+}
+
+/*
+ * Corner registration ticks. Crop marks from technical drawing, used on
+ * exactly two things — the drop zone and a completed result — to mark where
+ * material sits. Using them everywhere would destroy the meaning.
+ */
+.ticked {
+  position: relative;
+}
+
+.ticked::before,
+.ticked::after,
+.ticked > .tick-b::before,
+.ticked > .tick-b::after {
+  content: "";
+  position: absolute;
+  width: var(--tick);
+  height: var(--tick);
+  border-color: var(--line-hot);
+  border-style: solid;
+  border-width: 0;
+  transition: border-color var(--t-fast) var(--ease),
+    inset var(--t-fast) var(--ease), width var(--t-fast) var(--ease),
+    height var(--t-fast) var(--ease);
+}
+
+.ticked::before {
+  top: 0;
+  left: 0;
+  border-top-width: var(--hair);
+  border-left-width: var(--hair);
+}
+
+.ticked::after {
+  top: 0;
+  right: 0;
+  border-top-width: var(--hair);
+  border-right-width: var(--hair);
+}
+
+.ticked > .tick-b::before {
+  bottom: 0;
+  left: 0;
+  border-bottom-width: var(--hair);
+  border-left-width: var(--hair);
+}
+
+.ticked > .tick-b::after {
+  bottom: 0;
+  right: 0;
+  border-bottom-width: var(--hair);
+  border-right-width: var(--hair);
+}
+
+/* Graph paper, only on surfaces that hold work. */
+.worksurface {
+  background-color: var(--ink-100);
+  background-image: linear-gradient(var(--grid) var(--hair), transparent var(--hair)),
+    linear-gradient(90deg, var(--grid) var(--hair), transparent var(--hair));
+  background-size: 24px 24px;
+}

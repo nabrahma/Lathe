@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	wailsAllowed = []string{"internal/app", "cmd/lathe"}
+	wailsAllowed = []string{"internal/app", "."}
 
 	networkAllowed = []string{"internal/deps", "internal/update", "scripts/boundary"}
 

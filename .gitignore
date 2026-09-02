@@ -23,3 +23,5 @@ Thumbs.db
 
 # Planning notes
 /MD/
+frontend/tsconfig.tsbuildinfo
+/build/bin/

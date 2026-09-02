@@ -1,0 +1,702 @@
+/*
+ * Components.
+ *
+ * Restraint is the rule: yellow marks exactly one thing per screen, the
+ * primary action or the active state. Everything else is grayscale, and where
+ * something needs emphasis and yellow is already spoken for, it gets weight or
+ * a border instead of a second hue.
+ */
+
+/* ---------------------------------------------------------------- titlebar */
+
+.titlebar {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-4);
+  height: 44px;
+  padding: 0 var(--gap-4);
+  border-bottom: var(--hair) solid var(--line);
+  background: var(--ink-000);
+  flex: none;
+  --wails-draggable: drag;
+}
+
+.titlebar button,
+.titlebar input {
+  --wails-draggable: no-drag;
+}
+
+/* macOS insets the traffic lights into the window, so the app's own content
+   starts after them. */
+.titlebar.mac {
+  padding-left: 78px;
+}
+
+.wordmark {
+  font: 500 0.8125rem / 1 var(--mono);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--fg);
+}
+
+.wordmark span {
+  color: var(--hi);
+}
+
+.window-controls {
+  display: flex;
+  gap: 0;
+}
+
+.window-control {
+  width: 40px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  color: var(--fg-mid);
+  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+
+.window-control:hover {
+  background: var(--ink-200);
+  color: var(--fg);
+}
+
+.window-control.close:hover {
+  background: var(--stop);
+  color: var(--ink-000);
+}
+
+/* ----------------------------------------------------------------- buttons */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--gap-2);
+  height: 36px;
+  padding: 0 var(--gap-4);
+  font: 500 0.75rem / 1 var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: var(--hair) solid transparent;
+  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease),
+    border-color var(--t-fast) var(--ease);
+  white-space: nowrap;
+}
+
+.btn-primary {
+  background: var(--hi);
+  color: var(--ink-000);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--hi-press);
+}
+
+.btn-secondary {
+  border-color: var(--line);
+  color: var(--fg);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  border-color: var(--hi);
+}
+
+.btn-ghost {
+  color: var(--fg-mid);
+}
+
+.btn-ghost:hover:not(:disabled) {
+  color: var(--fg);
+}
+
+.btn-destructive {
+  border-color: var(--stop);
+  color: var(--stop);
+}
+
+.btn-destructive:hover:not(:disabled) {
+  background: var(--stop);
+  color: var(--ink-000);
+}
+
+/* No opacity fade: a faded element on near-black reads as a rendering bug. */
+.btn:disabled {
+  color: var(--fg-low);
+  border-color: var(--line-soft);
+  background: transparent;
+}
+
+.btn-lg {
+  height: 44px;
+  padding: 0 var(--gap-5);
+  font-size: 0.8125rem;
+}
+
+/* -------------------------------------------------------------- task cards */
+
+.task-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: var(--gap-3);
+}
+
+.task-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-2);
+  padding: var(--gap-4);
+  text-align: left;
+  background: var(--ink-200);
+  border: var(--hair) solid var(--line);
+  transition: border-color var(--t-fast) var(--ease);
+  min-height: 104px;
+}
+
+/* No lift, no scale, no shadow. */
+.task-card:hover {
+  border-color: var(--hi);
+}
+
+.task-card:hover .task-icon {
+  color: var(--hi);
+}
+
+.task-icon {
+  color: var(--hi-dim);
+  transition: color var(--t-fast) var(--ease);
+}
+
+.task-name {
+  font: 500 1rem / 1.25 var(--mono);
+  text-transform: uppercase;
+  color: var(--fg);
+}
+
+.task-desc {
+  font: 400 0.8125rem / 1.4 var(--sans);
+  color: var(--fg-mid);
+}
+
+.task-card:disabled {
+  border-color: var(--line-soft);
+}
+
+.task-card:disabled .task-name,
+.task-card:disabled .task-icon {
+  color: var(--fg-low);
+}
+
+/* A tier badge is honest before the click, not after. */
+.badge {
+  font: 500 0.6875rem / 1.3 var(--mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border: var(--hair) solid currentColor;
+  align-self: flex-start;
+}
+
+.badge-warn {
+  color: var(--warn);
+}
+
+.badge-go {
+  color: var(--go);
+}
+
+/* ------------------------------------------------------------- search bar */
+
+.search {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-3);
+  height: 44px;
+  padding: 0 var(--gap-4);
+  background: var(--ink-300);
+  border: var(--hair) solid var(--line);
+  transition: border-color var(--t-fast) var(--ease);
+}
+
+.search:focus-within {
+  border-color: var(--hi);
+}
+
+.search input {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  font: 400 0.9375rem / 1 var(--sans);
+  color: var(--fg);
+}
+
+.search input::placeholder {
+  color: var(--fg-low);
+}
+
+.kbd {
+  font: 500 0.6875rem / 1 var(--mono);
+  letter-spacing: 0.06em;
+  color: var(--fg-low);
+  border: var(--hair) solid var(--line);
+  padding: 4px 6px;
+}
+
+/* -------------------------------------------------------------- drop zone */
+
+/*
+ * The one bold element. Boldness is spent here because this is the interaction
+ * the whole product is built around.
+ */
+.dropzone {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 220px;
+  padding: var(--gap-6);
+  text-align: center;
+  transition: background-color var(--t-fast) var(--ease);
+}
+
+.dropzone-title {
+  font: 500 1.125rem / 1.25 var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-low);
+  transition: color var(--t-fast) var(--ease);
+}
+
+.dropzone-hint {
+  font: 400 0.875rem / 1.5 var(--sans);
+  color: var(--fg-low);
+  margin-top: var(--gap-2);
+}
+
+/*
+ * On drag-over the four ticks move inward and thicken: a machine closing on a
+ * workpiece. It is the signature gesture of the app and appears nowhere else.
+ */
+.dropzone.over {
+  background-color: var(--hi-wash);
+}
+
+.dropzone.over::before,
+.dropzone.over::after,
+.dropzone.over > .tick-b::before,
+.dropzone.over > .tick-b::after {
+  width: calc(var(--tick) + 4px);
+  height: calc(var(--tick) + 4px);
+  border-color: var(--hi);
+  border-width: 2px;
+}
+
+.dropzone.over::before {
+  top: 4px;
+  left: 4px;
+  border-right-width: 0;
+  border-bottom-width: 0;
+}
+
+.dropzone.over::after {
+  top: 4px;
+  right: 4px;
+  border-left-width: 0;
+  border-bottom-width: 0;
+}
+
+.dropzone.over > .tick-b::before {
+  bottom: 4px;
+  left: 4px;
+  border-right-width: 0;
+  border-top-width: 0;
+}
+
+.dropzone.over > .tick-b::after {
+  bottom: 4px;
+  right: 4px;
+  border-left-width: 0;
+  border-top-width: 0;
+}
+
+.dropzone.over .dropzone-title {
+  color: var(--hi);
+}
+
+/* -------------------------------------------------------------- file list */
+
+.file-row {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-3);
+  padding: var(--gap-3) var(--gap-4);
+  border-bottom: var(--hair) solid var(--line-soft);
+}
+
+.file-row:last-child {
+  border-bottom: none;
+}
+
+.filename {
+  font: 400 0.875rem / 1.4 var(--mono);
+  color: var(--fg);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.filemeta {
+  font: 400 0.875rem / 1.4 var(--mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--fg-mid);
+  white-space: nowrap;
+}
+
+.file-warn {
+  font: 400 0.8125rem / 1.4 var(--sans);
+  color: var(--warn);
+}
+
+/* ---------------------------------------------------------------- options */
+
+.option {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-2);
+}
+
+.option-label {
+  font: 500 0.75rem / 1.2 var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-mid);
+}
+
+.choices {
+  display: flex;
+  gap: 0;
+  border: var(--hair) solid var(--line);
+  width: fit-content;
+  max-width: 100%;
+  flex-wrap: wrap;
+}
+
+.choice {
+  padding: var(--gap-3) var(--gap-4);
+  border-right: var(--hair) solid var(--line);
+  text-align: left;
+  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+
+.choice:last-child {
+  border-right: none;
+}
+
+.choice-label {
+  font: 500 0.8125rem / 1.2 var(--mono);
+  text-transform: uppercase;
+  color: var(--fg-mid);
+  display: block;
+}
+
+.choice-hint {
+  font: 400 0.75rem / 1.4 var(--sans);
+  color: var(--fg-low);
+  display: block;
+  margin-top: 2px;
+}
+
+.choice:hover .choice-label {
+  color: var(--fg);
+}
+
+/* The active state is the one place yellow appears in an options panel. */
+.choice.on {
+  background: var(--hi-wash);
+}
+
+.choice.on .choice-label {
+  color: var(--hi);
+}
+
+.field {
+  height: 36px;
+  padding: 0 var(--gap-3);
+  background: var(--ink-300);
+  border: var(--hair) solid var(--line);
+  font: 400 0.875rem / 1 var(--mono);
+  color: var(--fg);
+  outline: none;
+  transition: border-color var(--t-fast) var(--ease);
+  min-width: 0;
+}
+
+.field:focus {
+  border-color: var(--hi);
+}
+
+.field::placeholder {
+  color: var(--fg-low);
+  font-family: var(--sans);
+}
+
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-3);
+}
+
+.toggle-box {
+  width: 16px;
+  height: 16px;
+  border: var(--hair) solid var(--line);
+  display: grid;
+  place-items: center;
+  flex: none;
+  transition: border-color var(--t-fast) var(--ease);
+}
+
+.toggle-box.on {
+  border-color: var(--hi);
+  color: var(--hi);
+}
+
+.slider {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-3);
+}
+
+.slider input[type="range"] {
+  flex: 1;
+  appearance: none;
+  height: 2px;
+  background: var(--line);
+  outline: none;
+}
+
+.slider input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  background: var(--hi);
+  cursor: default;
+}
+
+.slider-value {
+  font: 400 0.875rem / 1 var(--mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--fg);
+  min-width: 4ch;
+  text-align: right;
+}
+
+.more-options {
+  font: 500 0.75rem / 1.2 var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-mid);
+  align-self: flex-start;
+  transition: color var(--t-fast) var(--ease);
+}
+
+.more-options:hover {
+  color: var(--hi);
+}
+
+/* --------------------------------------------------------------- progress */
+
+/* Linear, no easing: easing implies information the bar does not have. */
+.bar {
+  height: 2px;
+  background: var(--line-soft);
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  background: var(--hi);
+  transition: width 200ms linear;
+}
+
+.bar-indeterminate {
+  width: 30%;
+  height: 100%;
+  background: var(--hi);
+  animation: sweep 1.4s ease-in-out infinite;
+}
+
+@keyframes sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(430%);
+  }
+}
+
+.stage {
+  font: 400 0.875rem / 1.4 var(--mono);
+  color: var(--fg-mid);
+}
+
+/* ----------------------------------------------------------------- result */
+
+.result-card {
+  padding: var(--gap-5);
+  background: var(--ink-200);
+}
+
+.result-delta {
+  font: 400 0.875rem / 1.4 var(--mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--go);
+}
+
+/* ------------------------------------------------------------------ error */
+
+/* Errors are sans, sentence case, with a stop-coloured rule. Never uppercase. */
+.error {
+  border-left: 2px solid var(--stop);
+  padding: var(--gap-4);
+  background: var(--ink-200);
+}
+
+.error-message {
+  font: 400 0.9375rem / 1.55 var(--sans);
+  color: var(--fg);
+  max-width: 68ch;
+}
+
+.error-detail {
+  font: 400 0.8125rem / 1.5 var(--mono);
+  color: var(--fg-mid);
+  background: var(--ink-300);
+  padding: var(--gap-3);
+  margin-top: var(--gap-3);
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 180px;
+  overflow: auto;
+}
+
+/* ------------------------------------------------------------------ notes */
+
+.note {
+  font: 400 0.875rem / 1.5 var(--sans);
+  color: var(--warn);
+  max-width: 68ch;
+  border-left: 2px solid var(--warn);
+  padding-left: var(--gap-3);
+}
+
+/* ----------------------------------------------------------------- dialog */
+
+.scrim {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 8, 8, 0.72);
+  display: grid;
+  place-items: center;
+  padding: var(--gap-5);
+  z-index: 10;
+}
+
+.dialog {
+  width: min(460px, 100%);
+  background: var(--ink-100);
+  border: var(--hair) solid var(--line);
+  padding: var(--gap-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-4);
+}
+
+.dialog-title {
+  font: 500 1.125rem / 1.25 var(--mono);
+  text-transform: uppercase;
+  color: var(--fg);
+}
+
+.dialog-body {
+  font: 400 0.9375rem / 1.55 var(--sans);
+  color: var(--fg-mid);
+}
+
+.dialog-facts {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--gap-2) var(--gap-4);
+  font: 400 0.875rem / 1.4 var(--mono);
+  font-variant-numeric: tabular-nums;
+  padding: var(--gap-3) 0;
+  border-top: var(--hair) solid var(--line-soft);
+  border-bottom: var(--hair) solid var(--line-soft);
+}
+
+.dialog-facts dt {
+  color: var(--fg-mid);
+  margin: 0;
+}
+
+.dialog-facts dd {
+  color: var(--fg);
+  margin: 0;
+}
+
+/* ------------------------------------------------------------------ misc */
+
+.screen {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-5);
+  padding: var(--gap-5);
+  max-width: 980px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* Screen changes crossfade; they never slide. */
+.fade-in {
+  animation: fade var(--t-screen) var(--ease);
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.empty {
+  font: 400 0.9375rem / 1.55 var(--sans);
+  color: var(--fg-low);
+  padding: var(--gap-6) 0;
+  text-align: center;
+}
+
+.divider {
+  height: var(--hair);
+  background: var(--line-soft);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  flex: none;
+}
+
+.status-dot.go {
+  background: var(--go);
+}
+
+.status-dot.stop {
+  background: var(--stop);
+}
+
+.status-dot.warn {
+  background: var(--warn);
+}

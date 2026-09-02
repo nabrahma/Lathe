@@ -200,10 +200,10 @@ func ocrManifest() string {
 	b.WriteString("  # Rendered from known text, so OCR accuracy is measured against real\n")
 	b.WriteString("  # ground truth. <name>.txt is the exact text in all three renderings.\n")
 	for _, p := range passages {
-		b.WriteString(fmt.Sprintf("  %s-clean.png:   a clean scan of the %s passage\n", p.name, p.name))
-		b.WriteString(fmt.Sprintf("  %s-photo.jpg:   the same page skewed, unevenly lit and noisy\n", p.name))
-		b.WriteString(fmt.Sprintf("  %s-lowres.jpg:  the same page at a third of the resolution\n", p.name))
-		b.WriteString(fmt.Sprintf("  %s.txt:         ground truth for the three above\n", p.name))
+		fmt.Fprintf(&b, "  %s-clean.png:   a clean scan of the %s passage\n", p.name, p.name)
+		fmt.Fprintf(&b, "  %s-photo.jpg:   the same page skewed, unevenly lit and noisy\n", p.name)
+		fmt.Fprintf(&b, "  %s-lowres.jpg:  the same page at a third of the resolution\n", p.name)
+		fmt.Fprintf(&b, "  %s.txt:         ground truth for the three above\n", p.name)
 	}
 	return b.String()
 }
