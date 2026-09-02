@@ -139,6 +139,16 @@ func (w *Workspace) Path(name string) string {
 	return filepath.Join(w.dir, sanitize(name))
 }
 
+// UniqueName returns a workspace path that no file occupies yet. Batch tasks
+// hit this constantly: photo.png, photo.jpg and photo.bmp converted together
+// all want to be photo.png, and silently overwriting would return one result
+// where the user asked for three.
+func (w *Workspace) UniqueName(name string) string {
+	name = sanitize(name)
+	ext := filepath.Ext(name)
+	return UniquePath(w.dir, strings.TrimSuffix(name, ext), ext)
+}
+
 // Sub creates and returns a subdirectory, for multi-step plans that need to
 // keep stages apart.
 func (w *Workspace) Sub(name string) (string, error) {

@@ -42,6 +42,14 @@ linters:
     rules:
       - path: _test\.go$
         linters: [gosec, unparam, errcheck]
+      # Writing to the CLI's own stdout and stderr: there is nowhere useful to
+      # report a failure to report.
+      - path: internal/cli/
+        linters: [errcheck]
+        source: fmt\.Fprint
+      # The corpus generator wants reproducible test data, not entropy.
+      - path: scripts/gencorpus/
+        linters: [gosec]
 
 formatters:
   enable:

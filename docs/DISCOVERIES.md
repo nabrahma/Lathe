@@ -61,3 +61,67 @@ Output naming never overwrites (`report.pdf` → `report (1).pdf`), which avoids
 this for most flows. Where a rename does hit a sharing violation, the error is
 mapped to "That file is open in another program. Close it and try again."
 rather than surfaced as an `errno`.
+
+## Windows rejects filename characters that Unix allows, so the corpus differs
+
+The adversarial corpus is meant to include every hostile filename a user could
+plausibly produce. On Unix that includes `"`, `?`, `*`, `|` and a literal
+newline. Windows refuses to create any of them: `os.Create` fails with "The
+filename, directory name, or volume label syntax is incorrect", not with a
+permissions error, which makes it look like a bug in the generator.
+
+`scripts/gencorpus` therefore emits a platform-dependent corpus, and
+`MANIFEST.yaml` says which entries are Unix-only. The characters that *are*
+portable — spaces, `'`, `;`, `$()`, backticks, `&`, non-ASCII, emoji, very long
+names — carry the argument-escaping test on every platform.
+
+## pdfcpu's ImportImagesFile appends to an existing output
+
+`api.ImportImagesFile(imgs, out, ...)` treats an existing `out` as a document to
+append to, not as a file to replace. Running the corpus generator twice
+therefore produced PDFs with exactly double the intended page count, and the
+page-range tests failed in a way that pointed at the page-range parser rather
+than at the generator.
+
+The generator now clears its output directory first. Any code path that imports
+images into a fixed path must either write into a fresh workspace or delete the
+target beforehand.
+
+## On Windows, soffice.exe is a launcher that neither prints nor waits
+
+`soffice.exe --version` on Windows exits 0 and prints nothing, and
+`soffice.exe --convert-to ...` returns immediately without waiting for the
+conversion. Both look like success. The component probe therefore reported
+LibreOffice as broken, and once that was worked around, conversions "succeeded"
+with no output file.
+
+`soffice.com` beside it is the console front-end: it prints the version and
+blocks until the conversion finishes. Lathe resolves `soffice.com` on Windows
+via `Component.WindowsExt`, and the default `.exe` elsewhere.
+
+The related trap: LibreOffice exits 0 whether or not it converted anything, so
+the office engine judges success by whether an output file appeared, never by
+the exit code.
+
+## LibreOffice needs explicit filter names, and PDF needs an import filter
+
+`--convert-to docx` fails with "no export filter for … found": the bare
+extension is ambiguous, and the filter has to be named
+(`docx:MS Word 2007 XML`). Opening a PDF at all additionally needs
+`--infilter=writer_pdf_import`, since PDF import belongs to Draw rather than to
+the format sniffer.
+
+The filter names contain spaces. They need no quoting here only because every
+argument reaches the process through an argv slice — the same property that
+makes a filename containing `; rm -rf ~` inert.
+
+## Every LibreOffice job gets its own user profile
+
+LibreOffice holds a lock on its user profile. Two conversions sharing the
+default profile serialise at best and deadlock at worst, and a killed run
+leaves a stale lock that hangs every later job with no visible cause.
+
+Each job passes `-env:UserInstallation=file:///…` pointing into its own
+workspace, so the profile is created fresh and removed with the workspace. The
+value must be a `file://` URL, and on Windows that means forward slashes with a
+leading slash before the drive letter.
