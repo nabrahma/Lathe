@@ -1,0 +1,46 @@
+
+
+          Wails Doctor
+
+
+▀  Scanning system - Please wait (this may take a long time)... (0s) ▀ Scanning system - Please wait (this may take a long time)... (0s) ▄ Scanning system - Please wait (this may take a long time)... (0s)                                                                                 SUCCESS  Scanning system - Please wait (this may take a long time)...
+# Wails
+┌───────────────────┐
+| Version | v2.15.0 |
+└───────────────────┘
+
+# System
+┌─────────────────────────────────────────────────────────────────────────────────────────────────┐
+| OS           | Windows 10 Home Single Language                                                  |
+| Version      | 2009 (Build: 26200)                                                              |
+| ID           | 25H2                                                                             |
+| Branding     | Windows 11 Home Single Language                                                  |
+| Go Version   | go1.26.4                                                                         |
+| Platform     | windows                                                                          |
+| Architecture | amd64                                                                            |
+| CPU          | AMD Ryzen 7 6800HS with Radeon Graphics                                          |
+| GPU 1        | NVIDIA GeForce RTX 3060 Laptop GPU (NVIDIA) - Driver: 32.0.16.1088               |
+| GPU 2        | AMD Radeon(TM) Graphics (Advanced Micro Devices, Inc.) - Driver: 31.0.12024.2005 |
+| Memory       | 16GB                                                                             |
+└─────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+# Dependencies
+┌───────────────────────────────────────────────────────┐
+| Dependency | Package Name | Status    | Version       |
+| WebView2   | N/A          | Installed | 152.0.4191.53 |
+| Nodejs     | N/A          | Installed | 22.22.0       |
+| npm        | N/A          | Installed | 10.9.4        |
+| *upx       | N/A          | Available |               |
+| *nsis      | N/A          | Available |               |
+|                                                       |
+└─────────────── * - Optional Dependency ───────────────┘
+
+# Diagnosis
+Optional package(s) installation details:
+  - upx : Available at https://upx.github.io/
+  - nsis : More info at https://wails.io/docs/guides/windows-installer/
+
+ SUCCESS  Your system is ready for Wails development!
+
+ ♥   If Wails is useful to you or your company, please consider sponsoring the project:
+https://github.com/sponsors/leaanthony

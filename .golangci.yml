@@ -1,0 +1,43 @@
+version: "2"
+
+run:
+  timeout: 5m
+  tests: true
+
+linters:
+  enable:
+    - bodyclose
+    - copyloopvar
+    - errorlint
+    - gocritic
+    - gosec
+    - misspell
+    - nilerr
+    - revive
+    - unconvert
+    - unparam
+    - whitespace
+
+  settings:
+    gosec:
+      excludes:
+        - G204 # subprocess launched with variable: internal/exec is the audited chokepoint
+    revive:
+      rules:
+        - name: exported
+          disabled: false
+        - name: package-comments
+          disabled: true
+
+  exclusions:
+    rules:
+      - path: _test\.go$
+        linters: [gosec, unparam, errcheck]
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    goimports:
+      local-prefixes: [github.com/nabrahma/lathe]

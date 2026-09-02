@@ -1,0 +1,25 @@
+# Build output
+/bin/
+/build/bin/
+/dist/
+frontend/dist/
+frontend/node_modules/
+frontend/wailsjs/
+
+# Local toolchain (kept inside the project, never committed)
+/.tools/
+
+# Test and coverage artifacts
+*.out
+*.test
+coverage.*
+/testdata/corpus/generated/
+
+# Editor and OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Planning notes
+/MD/

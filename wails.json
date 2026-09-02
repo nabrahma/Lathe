@@ -1,0 +1,19 @@
+{
+  "$schema": "https://wails.io/schemas/config.v2.json",
+  "name": "Lathe",
+  "outputfilename": "lathe",
+  "frontend:install": "npm install",
+  "frontend:build": "npm run build",
+  "frontend:dev:watcher": "npm run dev",
+  "frontend:dev:serverUrl": "auto",
+  "author": {
+    "name": "Nabaskar Brahma"
+  },
+  "info": {
+    "companyName": "Lathe",
+    "productName": "Lathe",
+    "productVersion": "0.1.0",
+    "copyright": "Copyright © 2026 Nabaskar Brahma",
+    "comments": "Convert, compress, and read files — offline."
+  }
+}
