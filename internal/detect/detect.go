@@ -130,9 +130,9 @@ func Detect(path string) (FileType, error) {
 	return ft, nil
 }
 
-// DetectAll runs Detect over several paths, reporting the first failure with
+// All runs Detect over several paths, reporting the first failure with
 // the offending filename attached.
-func DetectAll(paths []string) ([]FileType, error) {
+func All(paths []string) ([]FileType, error) {
 	out := make([]FileType, 0, len(paths))
 	for _, p := range paths {
 		ft, err := Detect(p)

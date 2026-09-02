@@ -20,8 +20,17 @@ linters:
 
   settings:
     gosec:
+      # Lathe is a local file-conversion tool: reading and writing paths the
+      # user chose, spawning converters, and calling the Windows Job Object API
+      # are the product, not a smell. Each exclusion below is deliberate.
       excludes:
-        - G204 # subprocess launched with variable: internal/exec is the audited chokepoint
+        - G103 # unsafe: required by the Windows Job Object API in internal/exec
+        - G115 # int -> uint32 on a PID, which cannot overflow in practice
+        - G204 # subprocess with variable args: internal/exec is the audited chokepoint
+        - G301 # 0755 directories: output folders must be readable by the user's other tools
+        - G302 # 0644 files: user documents, not secrets
+        - G304 # file inclusion via variable: opening the file the user picked is the job
+        - G306 # 0644 on WriteFile, as above
     revive:
       rules:
         - name: exported
