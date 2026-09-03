@@ -40,8 +40,8 @@ if (-not (Test-Path $demo)) { throw "Generate the demo files first: go run ./scr
 New-Item -ItemType Directory -Force -Path $out | Out-Null
 
 # The window size every click coordinate below was measured against.
-$windowWidth  = 1290
-$windowHeight = 900
+$windowWidth  = 1900
+$windowHeight = 1150
 
 $script:window = $null
 $script:handle = 0
@@ -112,16 +112,16 @@ Open-App "$demo\Fee Receipt Scan.pdf"
 Save-Shot "02-filtered.png"
 
 # Compress PDF, which arrives with the file already attached.
-Invoke-Click 236 760
+Invoke-Click 254 807
 Save-Shot "03-task.png"
 
 # Run it. The size figures on the result are whatever the app produced.
-Invoke-Click 1153 770 6000
+Invoke-Click 1775 770 6000
 Save-Shot "04-result.png"
 
 # Settings, where the tier system is visible.
 Open-App $null
-Invoke-Click 1190 353
+Invoke-Click 1812 353
 Save-Shot "05-settings.png"
 
 Get-Process lathe -ErrorAction SilentlyContinue | Stop-Process -Force

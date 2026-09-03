@@ -142,27 +142,25 @@
 
 .task-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(238px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(288px, 1fr));
   gap: var(--gap-4);
 }
 
 /*
- * A card is mostly air. The icon sits alone at the top, the name and the line
- * of explanation sit at the bottom, and the space between them is what stops
- * a wall of twenty-seven cards reading as a list of table rows.
+ * A card is a plate and a caption. The plate is a landscape work surface with
+ * the icon centred on graph paper, and the caption sits under it, so a band of
+ * cards reads as a row of parts on a bench rather than a list of table rows.
  */
 .task-card {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: var(--gap-2);
-  padding: var(--gap-5);
+  padding: 0;
   text-align: left;
   background: var(--ink-200);
   border: var(--hair) solid var(--line);
   transition: background var(--t-fast) var(--ease),
     border-color var(--t-fast) var(--ease);
-  min-height: 148px;
 }
 
 /* Still no lift, no scale, no shadow. The card lights up where it sits. */
@@ -196,13 +194,24 @@
   color: var(--hi);
 }
 
-.task-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--gap-3);
-  margin-bottom: auto;
-  padding-bottom: var(--gap-4);
+/*
+ * The plate. Graph paper is already the vocabulary for a work surface, so the
+ * icon sits on it the way a part sits on a marking-out table.
+ */
+.task-plate {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 16 / 7;
+  background-color: var(--ink-300);
+  background-image: radial-gradient(circle, var(--grid) 1px, transparent 1px);
+  background-size: 8px 8px;
+  border-bottom: var(--hair) solid var(--line);
+  transition: background-color var(--t-fast) var(--ease);
+}
+
+.task-card:hover .task-plate {
+  background-color: var(--ink-200);
 }
 
 .task-icon {
@@ -210,9 +219,12 @@
   transition: color var(--t-fast) var(--ease);
 }
 
-/* The catalogue number. Every task has a fixed position in the registry, and
-   showing it makes the grid feel indexed rather than arbitrary. */
+/* The catalogue number, set into the corner of the plate the way a part number
+   is stamped into the corner of a drawing. */
 .task-index {
+  position: absolute;
+  top: var(--gap-3);
+  right: var(--gap-3);
   font: 400 0.6875rem / 1 var(--mono);
   letter-spacing: 0.1em;
   color: var(--fg-low);
@@ -220,14 +232,30 @@
   font-variant-numeric: tabular-nums;
 }
 
+.task-plate .badge {
+  position: absolute;
+  top: var(--gap-3);
+  right: var(--gap-3);
+}
+
+.task-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-2);
+  padding: var(--gap-4) var(--gap-4) var(--gap-5);
+}
+
 .task-name {
-  font: 400 1rem / 1.25 var(--mono);
+  font: 400 0.9375rem / 1.25 var(--mono);
+  letter-spacing: 0.02em;
   text-transform: uppercase;
   color: var(--fg);
 }
 
+/* Mono here too. The line is a label rather than prose, and the terminal face
+   is what holds the card together. */
 .task-desc {
-  font: 400 0.8125rem / 1.45 var(--sans);
+  font: 300 0.75rem / 1.5 var(--mono);
   color: var(--fg-mid);
 }
 
@@ -239,6 +267,7 @@
 .task-card:disabled .task-icon {
   color: var(--fg-low);
 }
+
 
 /* --------------------------------------------------------------- masthead */
 
@@ -779,7 +808,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--gap-6);
-  padding: var(--gap-6) var(--gap-6) var(--gap-8);
+  padding: var(--gap-6) var(--gap-5) var(--gap-8);
   max-width: var(--measure);
   width: 100%;
   margin: 0 auto;

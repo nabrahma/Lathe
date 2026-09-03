@@ -55,9 +55,10 @@
   --gap-8: 64px;
   --gap-9: 96px;
 
-  /* Layout: the shell is wide enough for four cards, which is what stops the
-     grid reading as a cramped list. */
-  --measure: 1180px;
+  /* Layout: the shell follows the window rather than sitting in the middle of
+     it. The cap only stops the grid stretching absurdly on a very wide
+     display. */
+  --measure: 1760px;
 
   /* Motion: interaction feedback only, never page load */
   --t-fast: 120ms;

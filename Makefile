@@ -1,6 +1,7 @@
 GO      ?= go
 TOOLS   := $(CURDIR)/.tools/bin
 WAILS   := $(TOOLS)/wails
+LINT    := $(TOOLS)/golangci-lint
 VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
 LDFLAGS := -s -w -X github.com/nabrahma/lathe/internal/version.Version=$(VERSION)
 
@@ -11,9 +12,9 @@ export CGO_ENABLED = 0
 all: check build
 
 tools:
-	@mkdir -p $(TOOLS)
-	GOBIN=$(TOOLS) $(GO) install github.com/wailsapp/wails/v2/cmd/wails@v2.15.0
-	GOBIN=$(TOOLS) $(GO) install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
+	@mkdir -p "$(TOOLS)"
+	GOBIN="$(TOOLS)" $(GO) install github.com/wailsapp/wails/v2/cmd/wails@v2.15.0
+	GOBIN="$(TOOLS)" $(GO) install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
 
 deps:
 	$(GO) mod download
@@ -22,11 +23,14 @@ deps:
 build-cli:
 	$(GO) build -trimpath -ldflags "$(LDFLAGS)" -o bin/lathe ./cmd/lathe-cli
 
+# The desktop build needs cgo on macOS and Linux, where the webview is a C
+# library. Windows does not, because Wails loads WebView2 through pure Go, but
+# setting it everywhere keeps one command working on all three.
 build:
-	$(WAILS) build -trimpath -ldflags "$(LDFLAGS)"
+	CGO_ENABLED=1 "$(WAILS)" build -trimpath -ldflags "$(LDFLAGS)"
 
 dev:
-	$(WAILS) dev
+	CGO_ENABLED=1 "$(WAILS)" dev
 
 test:
 	$(GO) test ./...
@@ -38,7 +42,7 @@ test-race:
 	$(GO) test -race ./...
 
 lint:
-	golangci-lint run
+	"$(LINT)" run
 
 fmt:
 	$(GO) fmt ./...

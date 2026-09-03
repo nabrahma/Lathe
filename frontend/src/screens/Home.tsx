@@ -186,9 +186,9 @@ function TaskCard({
 }) {
   return (
     <button type="button" className="task-card" onClick={onPick}>
-      <div className="task-head">
+      <span className="task-plate">
         <span className="task-icon">
-          <Icon name={task.icon} size={26} />
+          <Icon name={task.icon} size={34} />
         </span>
         {/* Honest before the click, not after. */}
         {!task.available && task.downloadMB > 0 ? (
@@ -198,9 +198,11 @@ function TaskCard({
         ) : (
           <span className="task-index">{String(index).padStart(3, "0")}</span>
         )}
-      </div>
-      <span className="task-name">{task.name}</span>
-      <span className="task-desc">{task.description}</span>
+      </span>
+      <span className="task-body">
+        <span className="task-name">{task.name}</span>
+        <span className="task-desc">{task.description}</span>
+      </span>
     </button>
   );
 }
