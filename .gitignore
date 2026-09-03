@@ -28,3 +28,6 @@ Thumbs.db
 /MD/
 frontend/tsconfig.tsbuildinfo
 /build/bin/
+
+# Local agent tooling, not part of the project.
+/.mcp.json

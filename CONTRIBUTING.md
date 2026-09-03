@@ -87,23 +87,6 @@ a label.
 method and a row in the test matrix. If you find yourself touching the UI to
 add one, something has gone wrong.
 
-## Working with the GitHub MCP server
-
-The repository ships a `.mcp.json` pointing at GitHub's hosted MCP server, so
-an agent working in this checkout can read issues, pull requests and releases
-without a local install. Export a token before you start the session:
-
-```sh
-export GITHUB_PERSONAL_ACCESS_TOKEN=ghp_your_token
-```
-
-The token is read from the environment and never written into the repository.
-If you would rather run the server locally, Docker works too:
-
-```sh
-docker run -i --rm -e GITHUB_PERSONAL_ACCESS_TOKEN ghcr.io/github/github-mcp-server
-```
-
 ## Translations
 
 `docs/TRANSLATING.md`. A new language is a JSON file and a line in the
