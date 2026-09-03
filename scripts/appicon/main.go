@@ -7,6 +7,8 @@
 package main
 
 import (
+	"bytes"
+	"encoding/binary"
 	"fmt"
 	"image"
 	"image/color"
@@ -32,14 +34,10 @@ const (
 
 	// Half the arc the tool has cut out of the outer face, in degrees.
 	gapHalfDeg = 13.0
-
-	tickInset, tickLen, tickW = 3.0, 5.0, 1.5
 )
 
 var (
-	ground = color.NRGBA{0x08, 0x08, 0x08, 0xff}
 	metal  = color.NRGBA{0xed, 0xed, 0xed, 0xff}
-	tick   = color.NRGBA{0x3d, 0x3d, 0x3d, 0xff}
 	accent = color.NRGBA{0xff, 0xe5, 0x00, 0xff}
 )
 
@@ -55,25 +53,92 @@ func main() {
 	}
 }
 
+// icoSizes are the sizes Windows picks between, from the taskbar up to the
+// large view in Explorer. Each is rendered at its own resolution rather than
+// scaled down from one, because these shapes are geometry, and rasterising
+// them directly keeps the edges hard where a resample would blur them.
+var icoSizes = []int{16, 24, 32, 48, 64, 128, 256}
+
 func run() error {
 	root, err := repoRoot()
 	if err != nil {
 		return err
 	}
 
-	// 1024 is what Wails wants for macOS; Windows and Linux downscale from it.
-	const size = 1024
-	img := render(size)
-
-	out := filepath.Join(root, "build", "appicon.png")
-	if err := fsatomic.WriteFile(out, func(w io.Writer) error {
-		return png.Encode(w, img)
-	}, 0); err != nil {
+	// 1024 is what Wails wants for macOS; Linux uses it directly.
+	png1024 := filepath.Join(root, "build", "appicon.png")
+	if err := writePNG(png1024, render(1024)); err != nil {
 		return err
 	}
-	fmt.Println("wrote", out)
+	fmt.Println("wrote", png1024)
+
+	// Wails only generates this from appicon.png when it is missing, so a
+	// stale one silently keeps shipping on the executable.
+	ico := filepath.Join(root, "build", "windows", "icon.ico")
+	if err := writeICO(ico, icoSizes); err != nil {
+		return err
+	}
+	fmt.Println("wrote", ico)
 	return nil
 }
+
+func writePNG(path string, img *image.NRGBA) error {
+	return fsatomic.WriteFile(path, func(w io.Writer) error {
+		return png.Encode(w, img)
+	}, 0)
+}
+
+// writeICO emits a Windows icon holding one PNG-compressed image per size.
+// PNG inside ICO has been supported since Vista, and this app targets far
+// newer than that.
+func writeICO(path string, sizes []int) error {
+	var frames [][]byte
+	for _, s := range sizes {
+		var buf bytes.Buffer
+		if err := png.Encode(&buf, render(s)); err != nil {
+			return fmt.Errorf("encode %dpx: %w", s, err)
+		}
+		frames = append(frames, buf.Bytes())
+	}
+
+	return fsatomic.WriteFile(path, func(w io.Writer) error {
+		// ICONDIR: reserved, type 1 (icon), image count.
+		if err := binary.Write(w, binary.LittleEndian,
+			[3]uint16{0, 1, uint16(len(frames))}); err != nil {
+			return err
+		}
+
+		// Directory entries are fixed width, so the first image starts after
+		// all of them.
+		offset := uint32(6 + 16*len(frames))
+		for i, f := range frames {
+			// 0 means 256 in a single byte.
+			dim := byte(sizes[i])
+			entry := struct {
+				W, H, Colors, Reserved byte
+				Planes, Bits           uint16
+				Size, Offset           uint32
+			}{dim, dim, 0, 0, 1, 32, uint32(len(f)), offset}
+			if err := binary.Write(w, binary.LittleEndian, entry); err != nil {
+				return err
+			}
+			offset += uint32(len(f))
+		}
+
+		for _, f := range frames {
+			if _, err := w.Write(f); err != nil {
+				return err
+			}
+		}
+		return nil
+	}, 0)
+}
+
+// The tile belongs to the lockup on a page, where the mark has to survive a
+// light background. An application icon sits in a dock or a task bar beside
+// other transparent icons, so it is the bare mark: no ground, no registration
+// ticks, and centred on itself rather than in the tile.
+const markShiftX = 2.5
 
 func render(size int) *image.NRGBA {
 	img := image.NewNRGBA(image.Rect(0, 0, size, size))
@@ -81,10 +146,9 @@ func render(size int) *image.NRGBA {
 
 	for py := 0; py < size; py++ {
 		for px := 0; px < size; px++ {
-			// Start on the ground and lay each element over it, so a partly
-			// covered pixel blends against what is actually beneath it.
-			c := ground
-			c = over(c, tick, coverage(px, py, scale, ticksAt))
+			// Nothing underneath, so each element composites onto transparency
+			// and a partly covered pixel keeps a partial alpha.
+			var c color.NRGBA
 			c = over(c, metal, coverage(px, py, scale, ringsAt))
 			c = over(c, accent, coverage(px, py, scale, toolAt))
 			img.SetNRGBA(px, py, c)
@@ -98,7 +162,7 @@ func coverage(px, py int, scale float64, inside func(x, y float64) bool) float64
 	hit := 0
 	for sy := 0; sy < samples; sy++ {
 		for sx := 0; sx < samples; sx++ {
-			x := (float64(px) + (float64(sx)+0.5)/samples) * scale
+			x := (float64(px)+(float64(sx)+0.5)/samples)*scale + markShiftX
 			y := (float64(py) + (float64(sy)+0.5)/samples) * scale
 			if inside(x, y) {
 				hit++
@@ -149,36 +213,9 @@ func toolAt(x, y float64) bool {
 	return math.Abs(y-tipY) <= half
 }
 
-// ticksAt is the four corner registration marks.
-func ticksAt(x, y float64) bool {
-	for _, c := range [4][2]float64{
-		{tickInset, tickInset},
-		{unit - tickInset, tickInset},
-		{unit - tickInset, unit - tickInset},
-		{tickInset, unit - tickInset},
-	} {
-		if onTick(x, y, c[0], c[1]) {
-			return true
-		}
-	}
-	return false
-}
-
-// onTick draws the corner as two strokes meeting at a right angle, each
-// running inward from the corner point.
-func onTick(x, y, ox, oy float64) bool {
-	towards := func(v, o float64) bool {
-		if o < unit/2 {
-			return v >= o && v <= o+tickLen
-		}
-		return v <= o && v >= o-tickLen
-	}
-	onArm := math.Abs(y-oy) <= tickW/2 && towards(x, ox)
-	onLeg := math.Abs(x-ox) <= tickW/2 && towards(y, oy)
-	return onArm || onLeg
-}
-
-// over composites src onto dst at the given coverage.
+// over composites src onto dst at the given coverage, in straight alpha, so a
+// pixel on the edge of a shape ends up partly transparent rather than blended
+// against a background that is not there.
 func over(dst, src color.NRGBA, a float64) color.NRGBA {
 	if a <= 0 {
 		return dst
@@ -186,10 +223,22 @@ func over(dst, src color.NRGBA, a float64) color.NRGBA {
 	if a >= 1 {
 		return src
 	}
-	mix := func(d, s uint8) uint8 {
-		return uint8(math.Round(float64(d)*(1-a) + float64(s)*a))
+
+	da := float64(dst.A) / 255
+	outA := a + da*(1-a)
+	if outA <= 0 {
+		return color.NRGBA{}
 	}
-	return color.NRGBA{mix(dst.R, src.R), mix(dst.G, src.G), mix(dst.B, src.B), 0xff}
+	mix := func(d, s uint8) uint8 {
+		v := (float64(s)*a + float64(d)*da*(1-a)) / outA
+		return uint8(math.Round(v))
+	}
+	return color.NRGBA{
+		mix(dst.R, src.R),
+		mix(dst.G, src.G),
+		mix(dst.B, src.B),
+		uint8(math.Round(outA * 255)),
+	}
 }
 
 // repoRoot walks up until it finds go.mod, so the script runs from anywhere.

@@ -17,6 +17,7 @@ These are linked into the binary and ship with it.
 | [xz](https://github.com/ulikunitz/xz) | BSD-3-Clause | Unpacking `.tar.xz` component archives |
 | [Wails](https://github.com/wailsapp/wails) | MIT | The desktop shell |
 | [React](https://react.dev) | MIT | The interface |
+| [pixelarticons](https://github.com/halfmage/pixelarticons) | MIT | The pixel task icons |
 | [Go Fonts](https://go.dev/blog/go-fonts) | BSD-3-Clause | Rendering the OCR test corpus |
 
 ## Downloaded or detected at runtime

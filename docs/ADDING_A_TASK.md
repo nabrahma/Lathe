@@ -30,6 +30,11 @@ The fields that need thought:
 - **`Verb`** is the primary button. `Extract`, not `Submit`. Store it in
   sentence case; the interface uppercases chrome, so other locales can leave it
   alone.
+- **`Icon`** must be a key in `frontend/src/components/pixelGlyphs.ts`. That
+  file is generated, so a new one means adding a line to the map in
+  `frontend/scripts/gen-icons.mjs` and running `npm run gen:icons`. An unknown
+  name falls back to the document glyph rather than failing, so check the card
+  actually shows what you meant.
 - **`Accepts`** decides which tasks appear when someone drags a file onto the
   home screen. Get it right and the categories stop mattering.
 - **`RequiredTier`** decides whether the card wears a `+111 MB` badge, and

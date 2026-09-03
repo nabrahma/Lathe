@@ -214,9 +214,45 @@
   background-color: var(--ink-200);
 }
 
+/* Scanlines. Faint enough to read as texture on the surface rather than as a
+   pattern drawn on top of it. */
+.task-plate::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.028) 0 1px,
+    transparent 1px 3px
+  );
+  pointer-events: none;
+}
+
+/*
+ * At rest the plate is monochrome, so a screenful of cards stays quiet.
+ * Colour arrives only under the pointer, which lets the accent mean "this
+ * one" rather than "everything".
+ */
 .task-icon {
-  color: var(--hi-dim);
+  color: var(--fg-mid);
   transition: color var(--t-fast) var(--ease);
+}
+
+/* A tube settling after the beam moves: two stepped jumps, then still. */
+.task-card:hover .task-icon {
+  animation: crt-settle 200ms steps(3) both;
+}
+
+@keyframes crt-settle {
+  0% {
+    transform: translate(-2px, 1px);
+  }
+  50% {
+    transform: translate(1px, -1px);
+  }
+  100% {
+    transform: translate(0, -1px);
+  }
 }
 
 /* The catalogue number, set into the corner of the plate the way a part number

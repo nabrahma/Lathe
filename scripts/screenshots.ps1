@@ -79,6 +79,13 @@ function Save-Shot([string] $name) {
   $r = New-Object Shot+RECT
   [Shot]::GetWindowRect($script:handle, [ref]$r) | Out-Null
 
+  # Park the pointer on empty chrome first. Left where it clicked it hovers a
+  # card, and left over the desktop it raises a Windows tooltip; both end up in
+  # the picture.
+  [System.Windows.Forms.Cursor]::Position =
+    New-Object System.Drawing.Point (($r.Right - 40), ($r.Top + 200))
+  Start-Sleep -Milliseconds 700
+
   $bmp = New-Object System.Drawing.Bitmap ($r.Right - $r.Left), ($r.Bottom - $r.Top)
   $g = [System.Drawing.Graphics]::FromImage($bmp)
   $g.CopyFromScreen($r.Left, $r.Top, 0, 0, $bmp.Size)

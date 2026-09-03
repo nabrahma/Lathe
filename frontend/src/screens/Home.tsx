@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Icon } from "../components/Icon";
+import { PixelIcon } from "../components/PixelIcon";
 import type { FileInfo, Task } from "../lib/api";
 import { humanBytes } from "../lib/api";
 
@@ -188,7 +189,7 @@ function TaskCard({
     <button type="button" className="task-card" onClick={onPick}>
       <span className="task-plate">
         <span className="task-icon">
-          <Icon name={task.icon} size={34} />
+          <PixelIcon name={task.icon} size={40} />
         </span>
         {/* Honest before the click, not after. */}
         {!task.available && task.downloadMB > 0 ? (
