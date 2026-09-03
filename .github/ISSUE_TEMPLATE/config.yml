@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/nabrahma/Lathe/security/advisories/new
+    about: Report privately. Please do not open a public issue.
+  - name: Question or idea
+    url: https://github.com/nabrahma/Lathe/discussions
+    about: Ask how something works, or float a feature before writing code.
+  - name: Something is missing on purpose
+    url: https://github.com/nabrahma/Lathe/blob/main/docs/KNOWN_GAPS.md
+    about: Check the known gaps first. Several obvious omissions are deliberate.
