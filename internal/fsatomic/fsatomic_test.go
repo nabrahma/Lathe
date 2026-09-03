@@ -215,3 +215,82 @@ func assertNoTempLeftovers(t *testing.T, dir string) {
 		}
 	}
 }
+
+// The writability probe is a file in the user's own output folder, so what it
+// leaves behind matters. These pin the three things that can go wrong: debris
+// in the normal case, debris surviving a killed run, and a sweep that reaches
+// past its own files into somebody's data.
+
+const checkPrefix = ".lathe-check-"
+
+func TestCheckWritableLeavesNothingBehind(t *testing.T) {
+	dir := t.TempDir()
+	if err := fsatomic.CheckWritable(dir); err != nil {
+		t.Fatal(err)
+	}
+
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(entries) != 0 {
+		t.Errorf("the probe left %d file(s) in the output folder", len(entries))
+	}
+}
+
+// A run killed between creating the probe and removing it cannot clean up after
+// itself, because the kill is not deliverable to the program. The next job in
+// that folder has to do it instead.
+func TestCheckWritableClearsProbesLeftByAKilledRun(t *testing.T) {
+	dir := t.TempDir()
+	abandoned := filepath.Join(dir, checkPrefix+"651484437")
+	writeStaleFile(t, abandoned, time.Now().Add(-time.Hour))
+
+	if err := fsatomic.CheckWritable(dir); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(abandoned); !errors.Is(err, os.ErrNotExist) {
+		t.Errorf("an abandoned probe survived the next job: %v", err)
+	}
+}
+
+// Two jobs can start in the same folder at once. Sweeping a probe that another
+// process is still holding would make that job report the folder unwritable, so
+// only files old enough to be debris are touched.
+func TestCheckWritableKeepsAProbeFromAConcurrentJob(t *testing.T) {
+	dir := t.TempDir()
+	live := filepath.Join(dir, checkPrefix+"inflight")
+	writeStaleFile(t, live, time.Now())
+
+	if err := fsatomic.CheckWritable(dir); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(live); err != nil {
+		t.Errorf("a probe belonging to a job starting now was deleted: %v", err)
+	}
+}
+
+// The sweep must never reach an in-progress result. Those carry the other
+// prefix and are half of somebody's document, however old they are.
+func TestCheckWritableNeverSweepsAPartialResult(t *testing.T) {
+	dir := t.TempDir()
+	partial := filepath.Join(dir, ".lathe-tmp-halfadocument")
+	writeStaleFile(t, partial, time.Now().Add(-24*time.Hour))
+
+	if err := fsatomic.CheckWritable(dir); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(partial); err != nil {
+		t.Errorf("an in-progress result was swept away as debris: %v", err)
+	}
+}
+
+func writeStaleFile(t *testing.T, path string, at time.Time) {
+	t.Helper()
+	if err := os.WriteFile(path, nil, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Chtimes(path, at, at); err != nil {
+		t.Fatal(err)
+	}
+}

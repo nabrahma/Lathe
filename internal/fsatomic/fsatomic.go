@@ -23,7 +23,21 @@ const DefaultPerm os.FileMode = 0o644
 
 // tempPrefix marks Lathe's in-progress files so a crash leaves something
 // recognisable to clean up rather than mysterious debris in someone's folder.
+// A file carrying it is half of a result.
 const tempPrefix = ".lathe-tmp-"
+
+// checkPrefix marks the throwaway file CheckWritable creates, and is
+// deliberately not tempPrefix. The two mean different things: one is half a
+// document and the other is an empty probe that never held any of the user's
+// data, and anything scanning a folder for interrupted work has to be able to
+// tell them apart.
+const checkPrefix = ".lathe-check-"
+
+// staleCheckAge is how old an abandoned probe must be before CheckWritable
+// clears it away. A probe belonging to a job starting at this moment in the
+// same folder is microseconds old, so waiting a minute means the sweep can
+// never delete one that another process is still about to remove itself.
+const staleCheckAge = time.Minute
 
 // WriteFile writes through a temp file in the destination's own directory,
 // flushes it to disk, and renames it into place.
@@ -234,13 +248,50 @@ func CheckWritable(dir string) error {
 		return errors.New("the output path is a file, not a folder")
 	}
 
-	probe, err := os.CreateTemp(dir, tempPrefix+"probe-*")
+	probe, err := os.CreateTemp(dir, checkPrefix+"*")
 	if err != nil {
 		return fmt.Errorf("output folder is not writable: %w", err)
 	}
 	name := probe.Name()
 	_ = probe.Close()
-	return os.Remove(name)
+
+	// Anything abandoned by an earlier run goes now. A process killed between
+	// the create and the remove below leaves its probe behind, and no amount of
+	// care in this function can prevent that: the kill is not deliverable to
+	// the program, so there is no handler to run. Clearing the debris on the
+	// next job is the cure, which makes the folder heal itself rather than
+	// slowly accumulate empty files.
+	sweepStaleChecks(dir)
+
+	// A concurrent sweep may have removed this probe already, which is a
+	// success rather than a failure: the folder proved writable when the file
+	// was created.
+	if err := os.Remove(name); err != nil && !errors.Is(err, os.ErrNotExist) {
+		return err
+	}
+	return nil
+}
+
+// sweepStaleChecks removes probe files left by runs that were killed. It is
+// best-effort throughout: a folder that cannot be listed, or an entry that
+// cannot be removed, is not a reason to fail a job that is otherwise fine.
+func sweepStaleChecks(dir string) {
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return
+	}
+
+	cutoff := time.Now().Add(-staleCheckAge)
+	for _, e := range entries {
+		if e.IsDir() || !strings.HasPrefix(e.Name(), checkPrefix) {
+			continue
+		}
+		info, err := e.Info()
+		if err != nil || info.ModTime().After(cutoff) {
+			continue
+		}
+		_ = os.Remove(filepath.Join(dir, e.Name()))
+	}
 }
 
 func tempRoot() (string, error) {

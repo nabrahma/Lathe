@@ -160,7 +160,15 @@ func TestInputsSurviveAMidJobKill(t *testing.T) {
 			}
 
 			// Whatever landed in the destination must be a complete file, and
-			// no in-progress temp file may remain.
+			// no half-written result may remain.
+			//
+			// Only the in-progress prefix is checked, not the writability
+			// probe, which is a different thing wearing a similar name: an
+			// empty file that never held any of the user's data. A process
+			// killed between creating that probe and deleting it cannot clean
+			// up after itself, since the kill is not deliverable to the
+			// program, so the next job in the folder clears it instead. That is
+			// covered directly in internal/fsatomic.
 			entries, err := os.ReadDir(outDir)
 			if err != nil {
 				t.Fatal(err)
