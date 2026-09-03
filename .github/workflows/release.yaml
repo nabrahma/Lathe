@@ -57,7 +57,11 @@ jobs:
         env:
           CGO_ENABLED: "1"
         run: |
-          wails build -trimpath -ldflags \
+          # Wails v2 links against webkit2gtk-4.0 unless this tag is set, and
+          # Ubuntu 24.04 onwards ships only 4.1.
+          tags=""
+          [ "$RUNNER_OS" = Linux ] && tags="-tags webkit2_41"
+          wails build -trimpath $tags -ldflags \
             "-s -w -X github.com/nabrahma/lathe/internal/version.Version=${{ steps.version.outputs.value }}"
 
       - name: build the headless binary

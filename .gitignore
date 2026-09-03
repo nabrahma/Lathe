@@ -2,7 +2,8 @@
 /bin/
 /build/bin/
 /dist/
-frontend/dist/
+frontend/dist/*
+!frontend/dist/.gitkeep
 frontend/node_modules/
 frontend/wailsjs/
 
