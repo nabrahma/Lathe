@@ -31,7 +31,7 @@ jobs:
         with:
           fetch-depth: 0 # so git describe produces a real version
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v7
         with:
           go-version: ${{ env.GO_VERSION }}
       - uses: actions/setup-node@v4
@@ -120,7 +120,7 @@ jobs:
           sha256sum * > SHA256SUMS
           cat SHA256SUMS
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v7
         with:
           go-version: ${{ env.GO_VERSION }}
 
