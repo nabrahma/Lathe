@@ -22,7 +22,7 @@ it.**
 | **Video and photos** | FFmpeg | 111 MB | First video task, or first HEIC |
 | **Office documents** | LibreOffice | detected | First Word or Excel task |
 
-Fifteen of the thirty tasks — every PDF and image operation — need nothing
+Fifteen of the thirty tasks, every PDF and image operation, need nothing
 beyond the core download. That is deliberate: the tasks people search for most
 often are the ones that work the instant the app opens.
 
@@ -74,8 +74,8 @@ the middle of someone's job.
 
 **Archive extraction refuses to escape its destination.** Any entry whose path
 would land outside the target directory is skipped, and symlinks and device
-nodes are skipped entirely — none of the components need them, and each is a
-way out of the sandbox.
+nodes are skipped entirely, because none of the components need them and each
+is a way out of the sandbox.
 
 **Space is checked first.** Free space is compared against the download plus
 the unpacked size plus a margin, and a shortfall produces a clear message
@@ -87,7 +87,7 @@ asking for the same thing do not race into the same directory.
 ## The prompt
 
 When someone clicks a task that needs something they do not have, they see what
-it is, what it costs, and that it is one-time — before they commit:
+it is, what it costs, and that it is one-time, before they commit:
 
 ```
 ┌──────────────────────────────────────────────────┐
@@ -117,8 +117,8 @@ versioned URL and will not move. The Linux FFmpeg build is the exception: its
 publisher offers only a rolling "latest release" URL with no versioned archive,
 so its checksum goes stale whenever upstream publishes.
 
-That failure is safe by construction — a mismatch refuses the install with a
-clear message rather than trusting the file — but it needs refreshing. The
+That failure is safe by construction, since a mismatch refuses the install
+with a clear message rather than trusting the file, but it needs refreshing. The
 `Rolling` flag on the source marks which entries need it.
 
 ## Size budget
@@ -134,5 +134,5 @@ regressions creep in silently and then cannot be undone, so the gate is
 automatic rather than a thing somebody remembers to check.
 
 Current Windows build: **18.1 MB**, well inside the target. That headroom is
-what choosing Wails over Electron bought — there is no bundled browser, only
+what choosing Wails over Electron bought: there is no bundled browser, only
 the WebView2 runtime the operating system already has.

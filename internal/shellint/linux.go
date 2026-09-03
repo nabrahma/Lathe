@@ -40,7 +40,7 @@ func (l *linuxIntegrator) Install(executable string) error {
 		"[Desktop Entry]",
 		"Type=Application",
 		"Name=Lathe",
-		"Comment=Convert, compress and read files — offline",
+		"Comment=Convert, compress and read files, offline",
 		"Exec=" + executable + " %F",
 		"Icon=lathe",
 		"Terminal=false",

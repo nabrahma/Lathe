@@ -1,8 +1,8 @@
 # Lathe
 
-> Convert, compress and read files — offline, free, no upload.
+> Convert, compress and read files. Offline, free, no upload.
 
-![Lathe](docs/screenshots/home.png)
+![The Lathe home screen](docs/screenshots/01-home.png)
 
 [![ci](https://github.com/nabrahma/Lathe/actions/workflows/ci.yaml/badge.svg)](https://github.com/nabrahma/Lathe/actions/workflows/ci.yaml)
 [![license](https://img.shields.io/badge/license-AGPL--3.0-blue)](LICENSE)
@@ -22,27 +22,34 @@ open, drag a file in.
 Thirty tasks, each a card on the home screen rather than a coordinate in a
 format matrix.
 
-**PDF** — compress, merge, split, rotate, delete pages, reorder pages, add a
+**PDF.** Compress, merge, split, rotate, delete pages, reorder pages, add a
 watermark, add a password, remove a password you know, export pages as images,
 build a PDF from images.
 
-**Images** — convert between JPG, PNG, WEBP, TIFF, BMP and GIF; compress with a
+**Images.** Convert between JPG, PNG, WEBP, TIFF, BMP and GIF; compress with a
 quality setting; resize by pixels or by a preset; crop to a shape.
 
-**Text** — read the words out of a photo or a scan, pull the text out of a PDF,
+**Text.** Read the words out of a photo or a scan, pull the text out of a PDF,
 turn a scanned PDF into one you can search and copy from.
 
-**Documents** — PDF to Word, Word and Excel and PowerPoint to PDF, and the
+**Documents.** PDF to Word, Word and Excel and PowerPoint to PDF, and the
 usual interchange between Office and OpenDocument formats.
 
-**Video and audio** — convert and compress video, pull the audio out of a
+**Video and audio.** Convert and compress video, pull the audio out of a
 clip, convert between audio formats, make a GIF.
 
 Drag a file onto the home screen and the grid filters itself to what you can do
 with that file. Drop a photo and you see Convert, Compress, Resize, Extract
 text, Images to PDF. You never have to know which category anything is in.
 
-![A task screen](docs/screenshots/task.png)
+![Dropping a file filters the grid](docs/screenshots/02-filtered.png)
+
+Then the task screen: the file already attached, at most three options with
+sensible defaults, and one button carrying a verb.
+
+![The Compress PDF task screen](docs/screenshots/03-task.png)
+
+![A finished conversion](docs/screenshots/04-result.png)
 
 ## Why not just use an online converter?
 
@@ -68,6 +75,25 @@ The engineering that actually took the time was the dependency tiering
 work ([DISCOVERIES.md](docs/DISCOVERIES.md)), and making a webview-based window
 stop feeling like a web page.
 
+## Does it actually make things smaller?
+
+Compressing a PDF re-encodes the pictures inside it, which is what shrinks a
+scan. A lossless optimiser pass alone would report a scanned document as
+"already as small as it can get", which is true of its structure and useless to
+the person holding a 14 MB file and a 2 MB upload limit.
+
+Measured on the sample scan from `scripts/demofiles`:
+
+| Quality | Result |
+|---|---|
+| Smaller file | 1.5 MB to 197 kB, 87% smaller |
+| Balanced | 1.5 MB to 288 kB, 80% smaller |
+| Best quality | 1.5 MB to 493 kB, 66% smaller |
+
+A PDF that is already tight comes back untouched with a note saying so, rather
+than being returned slightly larger. What Lathe cannot do is reduce a scan's
+resolution, and that limit is explained in [KNOWN_GAPS.md](docs/KNOWN_GAPS.md).
+
 ## Install size
 
 | | Size | When |
@@ -80,6 +106,8 @@ stop feeling like a web page.
 PDF and image work needs none of that: it is compiled into the binary and
 available the moment Lathe opens. Anything heavier says what it needs and how
 big it is *before* you commit, then works offline afterwards.
+
+![The settings screen, showing what is installed](docs/screenshots/05-settings.png)
 
 Tesseract and LibreOffice are detected rather than downloaded. Neither
 publishes a portable, checksummed archive for all three platforms, and
@@ -94,7 +122,7 @@ Measured, not estimated: [docs/evidence/binary-size.md](docs/evidence/binary-siz
 | | Measured | Target |
 |---|---:|---:|
 | Cold start | 479 ms | under 2 s |
-| Idle memory | 31.8 MB | — |
+| Idle memory | 31.8 MB | n/a |
 
 Median of five cold launches on Windows 11, Ryzen 7 6800HS. Method and raw
 numbers in [docs/evidence/startup-windows.md](docs/evidence/startup-windows.md).
@@ -113,8 +141,8 @@ Character-level accuracy against committed ground truth, from
 
 **Read that table with the caveat it deserves.** The corpus is rendered from
 digital text and then degraded programmatically, which is an easier target than
-a photograph of physically printed paper — real-world accuracy on a crumpled
-receipt will be lower. What the benchmark is genuinely good for is catching a
+a photograph of physically printed paper, so real-world accuracy on a
+crumpled receipt will be lower. What the benchmark is genuinely good for is catching a
 regression in the preprocessing chain, and CI fails if any figure drops by more
 than two points.
 
@@ -186,8 +214,8 @@ make build-cli # the headless binary
 ```
 
 Needs Go 1.25+, Node 22+ and, on Linux, `libgtk-3-dev` and
-`libwebkit2gtk-4.1-dev` — `scripts/linux-deps.sh` installs those across Debian,
-Fedora and Arch.
+`libwebkit2gtk-4.1-dev`. `scripts/linux-deps.sh` installs those across
+Debian, Fedora and Arch.
 
 `build/docker/test.Dockerfile` carries Tesseract and FFmpeg, so the OCR and
 media suites run on a machine that has neither:

@@ -9,7 +9,7 @@
  */
 
 :root {
-  /* Ground — machine black, no blue or warm tint */
+  /* Ground: machine black, no blue or warm tint */
   --ink-000: #080808; /* app background */
   --ink-100: #101010; /* panel */
   --ink-200: #161616; /* card, raised surface */
@@ -21,7 +21,7 @@
   --line-hot: #3d3600; /* dim yellow, active surfaces and corner ticks */
   --grid: #131313; /* graph paper inside work surfaces */
 
-  /* Accent — safety yellow. One thing per screen, never two. */
+  /* Accent: safety yellow. One thing per screen, never two. */
   --hi: #ffe500;
   --hi-press: #d9c300;
   --hi-dim: #8a7c00;
@@ -32,7 +32,7 @@
   --fg-mid: #9a9a9a;
   --fg-low: #5e5e5e;
 
-  /* Semantic — go / stop, as a machine signals. Status only, never decoration. */
+  /* Semantic: go / stop, as a machine signals. Status only, never decoration. */
   --go: #3dd68c;
   --stop: #ff4d3d;
   --warn: #ffa53d;
@@ -51,7 +51,7 @@
   --gap-6: 32px;
   --gap-7: 48px;
 
-  /* Motion — interaction feedback only, never page load */
+  /* Motion: interaction feedback only, never page load */
   --t-fast: 120ms;
   --t-screen: 80ms;
   --ease: cubic-bezier(0.2, 0, 0.2, 1);

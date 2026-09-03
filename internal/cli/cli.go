@@ -207,7 +207,7 @@ func coerce(opt task.Option, value string) any {
 }
 
 func (a *App) usage() {
-	fmt.Fprintf(a.Stdout, `%s %s — convert, compress and read files, offline.
+	fmt.Fprintf(a.Stdout, `%s %s. Convert, compress and read files, offline.
 
 Usage:
   lathe <task> <file>... [options] [-o output]
@@ -245,7 +245,7 @@ func (a *App) listTasks() {
 }
 
 func (a *App) taskUsage(tk task.Task) {
-	fmt.Fprintf(a.Stderr, "%s — %s\n\n", tk.Command(), tk.Description)
+	fmt.Fprintf(a.Stderr, "%s: %s\n\n", tk.Command(), tk.Description)
 
 	inputs := "<file>"
 	switch {

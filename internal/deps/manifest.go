@@ -1,8 +1,8 @@
 package deps
 
 // The component manifest is compiled into the binary. Every checksum here was
-// taken from the publisher or computed from the exact file at the pinned URL —
-// none is a placeholder, and the installer refuses any component whose
+// taken from the publisher or computed from the exact file at the pinned URL.
+// None is a placeholder, and the installer refuses any component whose
 // checksum is empty rather than trusting an unverified download.
 //
 // Not every dependency can be distributed this way. FFmpeg publishes portable,

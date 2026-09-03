@@ -9,7 +9,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
  *
  * Files arrive from the operating system through Wails' drag-and-drop, which
  * gives real paths. A browser drop event gives a File object with no path,
- * which is useless to a local converter — so the desktop path is the only one
+ * which is useless to a local converter, so the desktop path is the only one
  * that matters, and there is deliberately no HTML file input anywhere.
  */
 

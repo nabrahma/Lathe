@@ -1,6 +1,6 @@
 // Package app is the only package that touches Wails.
 //
-// Everything below it — tasks, pipeline, engines — is driven through the same
+// Everything below it (tasks, pipeline, engines) is driven through the same
 // interfaces the CLI uses, so this layer holds no logic of its own. That is
 // what keeps an eventual move to Wails v3 a rewrite of one package rather than
 // of the application, and CI enforces the boundary.
@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/wailsapp/wails/v2/pkg/options"
@@ -42,6 +43,11 @@ type App struct {
 	queue    *job.Queue
 	deps     deps.Manager
 	settings *settings.Store
+
+	// pending holds files the app was launched with, until the interface is
+	// ready to ask for them.
+	pendingMu sync.Mutex
+	pending   []string
 }
 
 // New builds the application backend.
@@ -70,6 +76,14 @@ func New() (*App, error) {
 // any visual detail, so component detection happens after the first paint.
 func (a *App) Startup(ctx context.Context) {
 	a.ctx = ctx
+
+	// Files named on the command line, which is how "Convert with Lathe" from
+	// the context menu arrives when no window is already open. They are held
+	// rather than emitted: the interface has not subscribed to anything yet,
+	// so an event here would be sent into the void.
+	a.pendingMu.Lock()
+	a.pending = filterPaths(os.Args[1:])
+	a.pendingMu.Unlock()
 
 	// Geometry is cheap and has to happen before the window is seen.
 	a.RestoreWindow()
@@ -125,7 +139,7 @@ func (a *App) reflectInTaskbar() {
 		runtime.WindowSetTitle(a.ctx, version.Name)
 		return
 	}
-	runtime.WindowSetTitle(a.ctx, fmt.Sprintf("%s — %d running", version.Name, a.queue.Active()))
+	runtime.WindowSetTitle(a.ctx, fmt.Sprintf("%s: %d running", version.Name, a.queue.Active()))
 }
 
 // --------------------------------------------------------------- task API
@@ -379,6 +393,21 @@ func (a *App) OnSecondInstance(data options.SecondInstanceData) {
 	}
 }
 
+// PendingFiles returns any files the app was launched with, and forgets them.
+// The interface calls this once on start, so a cold launch from the context
+// menu lands on the same filtered home screen as dragging the file in.
+func (a *App) PendingFiles() []FileInfo {
+	a.pendingMu.Lock()
+	paths := a.pending
+	a.pending = nil
+	a.pendingMu.Unlock()
+
+	if len(paths) == 0 {
+		return []FileInfo{}
+	}
+	return a.Inspect(paths)
+}
+
 // RequestOpenFiles asks the interface to run its own open-files flow, so the
 // menu item and the drop zone end up in exactly the same state.
 func (a *App) RequestOpenFiles() {
@@ -459,7 +488,7 @@ func (a *App) RestoreWindow() {
 //
 // Wails v2 reports each screen's size but not its origin, so the exact bounds
 // of a multi-monitor desktop are not knowable here. What it can rule out is a
-// position far outside any arrangement those sizes could produce — which is
+// position far outside any arrangement those sizes could produce, which is
 // what a disconnected second monitor leaves behind. Anything it cannot rule
 // out is allowed through, because wrongly re-centring a window someone
 // deliberately placed is the more annoying failure of the two.

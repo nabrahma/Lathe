@@ -70,7 +70,7 @@ func main() {
 			WebviewIsTransparent: false,
 			About: &mac.AboutInfo{
 				Title:   version.Name,
-				Message: "Convert, compress and read files — offline.\n" + version.Version,
+				Message: "Convert, compress and read files, offline.\n" + version.Version,
 			},
 		},
 		Menu: buildMenu(backend),

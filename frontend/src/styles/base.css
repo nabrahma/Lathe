@@ -218,7 +218,7 @@ svg {
 
 /*
  * Corner registration ticks. Crop marks from technical drawing, used on
- * exactly two things — the drop zone and a completed result — to mark where
+ * exactly two things, the drop zone and a completed result, to mark where
  * material sits. Using them everywhere would destroy the meaning.
  */
 .ticked {

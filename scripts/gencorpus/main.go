@@ -130,7 +130,10 @@ func makeScanPDF(path string, pages int) error {
 	var imgs []string
 	for i := 1; i <= pages; i++ {
 		p := filepath.Join(tmp, fmt.Sprintf("scan-%03d.jpg", i))
-		if err := writeJPEG(p, noisyPage(i), 70); err != nil {
+		// Scanners write at a quality well above what text needs, which is
+		// what gives Compress PDF something to work with. A corpus scan
+		// saved at low quality would make that task look broken.
+		if err := writeJPEG(p, noisyPage(i), 92); err != nil {
 			return err
 		}
 		imgs = append(imgs, p)

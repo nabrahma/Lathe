@@ -1,8 +1,8 @@
 // Package matrix_test runs every task against representative corpus files.
 //
 // This is the test that catches a regression when a dependency is upgraded.
-// For each case it asserts one of two acceptable outcomes — a valid output, or
-// a mapped error with a next action — and, in both cases, that the input file
+// For each case it asserts one of two acceptable outcomes: a valid output, or
+// a mapped error with a next action. In both cases the input file
 // is byte-for-byte unchanged.
 package matrix_test
 
@@ -34,7 +34,7 @@ const (
 	// wantSuccess: the task must produce a valid output.
 	wantSuccess outcome = iota
 	// wantMappedError: the task must fail, but with a translated message and a
-	// next action — never a raw engine string.
+	// next action, never a raw engine string.
 	wantMappedError
 )
 

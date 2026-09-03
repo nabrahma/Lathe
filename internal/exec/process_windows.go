@@ -11,7 +11,7 @@ import (
 
 // tracker holds the Job Object the child was assigned to. Windows has no
 // process groups in the Unix sense, so a Job Object is the only reliable way
-// to reach grandchildren — which matters because both FFmpeg and LibreOffice
+// to reach grandchildren, which matters because both FFmpeg and LibreOffice
 // spawn them.
 type tracker struct {
 	job windows.Handle

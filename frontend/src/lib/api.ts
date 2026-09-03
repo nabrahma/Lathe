@@ -163,6 +163,7 @@ interface Backend {
   Tasks(): Promise<Task[]>;
   TasksFor(category: string): Promise<Task[]>;
   Inspect(paths: string[]): Promise<FileInfo[]>;
+  PendingFiles(): Promise<FileInfo[]>;
   ChooseFiles(title: string): Promise<string[]>;
   ChooseFolder(title: string): Promise<string>;
   Reveal(path: string): Promise<void>;
@@ -217,6 +218,7 @@ export const api = {
   tasks: () => backend().Tasks(),
   tasksFor: (category: string) => backend().TasksFor(category),
   inspect: (paths: string[]) => backend().Inspect(paths),
+  pendingFiles: () => backend().PendingFiles(),
   chooseFiles: (title: string) => backend().ChooseFiles(title),
   chooseFolder: (title: string) => backend().ChooseFolder(title),
   reveal: (path: string) => backend().Reveal(path),

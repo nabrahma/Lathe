@@ -106,37 +106,83 @@ func pageCount(path, password string) (int, error) {
 }
 
 func compress(req engine.Request, progress func(engine.Progress)) (*engine.Response, error) {
-	progress(engine.Indeterminate("Compressing"))
-
 	in := req.Inputs[0]
-	out := req.Workspace.Path(outputName(in, "-compressed"))
+	out := req.Workspace.UniqueName(outputName(in, "-compressed"))
 	password := req.Options.String("password", "")
+	quality := req.Options.String("quality", "medium")
 
 	c := conf(password)
-	// pdfcpu's optimiser removes redundant objects and shared resources. The
-	// quality setting decides how aggressively embedded images are rewritten.
-	switch req.Options.String("quality", "medium") {
-	case "low":
-		c.OptimizeDuplicateContentStreams = true
-	case "high":
-		c.OptimizeDuplicateContentStreams = false
-	default:
-		c.OptimizeDuplicateContentStreams = true
-	}
+	c.OptimizeDuplicateContentStreams = true
 
-	if err := api.OptimizeFile(in, out, c); err != nil {
+	// Two passes, because they remove different things. Recompressing the
+	// embedded images is what shrinks a scan; the optimiser then dedupes
+	// objects and fonts, which is what shrinks a text document.
+	progress(engine.Indeterminate("Looking inside the PDF"))
+
+	recompressed, changed, err := recompressImages(in, profileFor(quality), c, progress)
+	if err != nil {
 		return nil, err
 	}
 
-	// Optimisation is lossless, so on an already-optimised file the result can
-	// be larger. Returning the smaller of the two is what the user asked for.
+	staged := req.Workspace.Path("staged.pdf")
+	if err := os.WriteFile(staged, recompressed, 0o644); err != nil {
+		return nil, err
+	}
+
+	progress(engine.Indeterminate("Tidying the document"))
+	if err := api.OptimizeFile(staged, out, c); err != nil {
+		return nil, err
+	}
+
 	inInfo, err1 := os.Stat(in)
 	outInfo, err2 := os.Stat(out)
-	notes := []string{}
+
+	// The optimiser is lossless, so on an already-tight file the result can be
+	// larger. Handing back the bigger of the two would be absurd.
 	if err1 == nil && err2 == nil && outInfo.Size() >= inInfo.Size() {
-		notes = append(notes, "This PDF was already about as small as it can get without losing quality.")
+		if err := copyFile(in, out); err != nil {
+			return nil, err
+		}
+		return &engine.Response{
+			Outputs: []string{out},
+			Notes:   []string{"This PDF was already as small as it can get without losing quality, so it was left as it is."},
+		}, nil
+	}
+
+	var notes []string
+	if changed > 0 {
+		notes = append(notes, fmt.Sprintf("%s recompressed at %s quality.",
+			plural(changed, "picture"), qualityWord(quality)))
 	}
 	return &engine.Response{Outputs: []string{out}, Notes: notes}, nil
+}
+
+func qualityWord(quality string) string {
+	switch quality {
+	case "low":
+		return "smaller file"
+	case "high":
+		return "best"
+	default:
+		return "balanced"
+	}
+}
+
+func plural(n int, noun string) string {
+	if n == 1 {
+		return "1 " + noun
+	}
+	return fmt.Sprintf("%d %ss", n, noun)
+}
+
+// copyFile is used when compression could not improve on the original, so the
+// user still receives a file rather than an error.
+func copyFile(src, dst string) error {
+	body, err := os.ReadFile(src)
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(dst, body, 0o644)
 }
 
 func merge(req engine.Request, progress func(engine.Progress)) (*engine.Response, error) {

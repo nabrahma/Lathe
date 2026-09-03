@@ -2,7 +2,7 @@
 //
 // Choosing pure Go over libvips keeps CGO_ENABLED=0, which keeps
 // cross-compilation trivial and removes a shared library from every installer.
-// The formats it covers — JPEG, PNG, GIF, BMP, TIFF, WebP — are the
+// The formats it covers (JPEG, PNG, GIF, BMP, TIFF and WebP) are the
 // overwhelming majority of real input. HEIC and AVIF have no pure-Go decoder
 // worth depending on and are handled by the media component instead.
 package imageengine

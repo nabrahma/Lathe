@@ -350,7 +350,7 @@ func (e *Engine) readText(ctx context.Context, bin, in string, opts engine.Optio
 }
 
 // tessArgs builds the Tesseract command line. Multi-language recognition in one
-// pass — "-l eng+hin" — matters because real documents mix scripts.
+// pass, written "-l eng+hin", matters because real documents mix scripts.
 func tessArgs(in, out string, opts engine.Options) []string {
 	args := []string{in, out}
 
