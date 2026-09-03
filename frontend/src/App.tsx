@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { Icon } from "./components/Icon";
+import { Logo } from "./components/Logo";
 import { Home } from "./screens/Home";
 import { Progress } from "./screens/Progress";
 import { SettingsScreen } from "./screens/Settings";
@@ -194,7 +195,8 @@ function TitleBar({ platform, onHome }: { platform: string; onHome?: () => void 
   return (
     <header className={`titlebar${platform === "darwin" ? " mac" : ""}`}>
       <button type="button" className="wordmark" onClick={onHome}>
-        LATHE<span>.</span>
+        <Logo size={18} />
+        LATHE
       </button>
       <span className="spacer" />
 

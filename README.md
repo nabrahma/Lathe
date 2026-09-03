@@ -1,13 +1,14 @@
-# Lathe
+<img src="docs/brand/logotype.svg" alt="Lathe" width="232">
 
-> Convert, compress and read files. Offline, free, no upload.
-
-![The Lathe home screen](docs/screenshots/01-home.png)
+Convert, compress and read files. Offline, free, no upload.
 
 [![ci](https://github.com/nabrahma/Lathe/actions/workflows/ci.yaml/badge.svg)](https://github.com/nabrahma/Lathe/actions/workflows/ci.yaml)
 [![license](https://img.shields.io/badge/license-AGPL--3.0-blue)](LICENSE)
+[![release](https://img.shields.io/github/v/release/nabrahma/Lathe?color=FFE500&label=release)](https://github.com/nabrahma/Lathe/releases/latest)
 
 **iLovePDF, but it runs on your computer and your files never leave it.**
+
+![The Lathe home screen](docs/screenshots/01-home.png)
 
 ## Download
 

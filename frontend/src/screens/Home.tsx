@@ -80,6 +80,22 @@ export function Home({ tasks, incoming, onClearIncoming, onPick, onSettings }: H
   return (
     <div className="scroll fade-in">
       <div className="screen">
+        <header className="masthead">
+          <div className="section-head">
+            <span className="t-micro" style={{ color: "var(--fg-low)" }}>
+              {tasks.length} tasks
+            </span>
+            <span className="section-rule" />
+            <span className="t-micro" style={{ color: "var(--fg-low)" }}>
+              Offline
+            </span>
+          </div>
+          <h1>
+            Convert, compress and read files.{" "}
+            <span>Nothing leaves this machine.</span>
+          </h1>
+        </header>
+
         <div className="row">
           <div className="search" style={{ flex: 1 }}>
             <Icon name="search" size={16} />
@@ -134,11 +150,22 @@ export function Home({ tasks, incoming, onClearIncoming, onPick, onSettings }: H
         )}
 
         {[...grouped.entries()].map(([category, list]) => (
-          <section key={category} className="col" style={{ gap: "var(--gap-3)" }}>
-            <h2 className="section-label">{groupTitles[category] ?? category}</h2>
+          <section key={category} className="col" style={{ gap: "var(--gap-4)" }}>
+            <div className="section-head">
+              <h2 className="section-label">{groupTitles[category] ?? category}</h2>
+              <span className="section-rule" />
+              <span className="section-count">
+                {String(list.length).padStart(2, "0")}
+              </span>
+            </div>
             <div className="task-grid">
-              {list.map((t) => (
-                <TaskCard key={t.id} task={t} onPick={() => onPick(t, incoming)} />
+              {list.map((t, i) => (
+                <TaskCard
+                  key={t.id}
+                  task={t}
+                  index={i + 1}
+                  onPick={() => onPick(t, incoming)}
+                />
               ))}
             </div>
           </section>
@@ -148,19 +175,28 @@ export function Home({ tasks, incoming, onClearIncoming, onPick, onSettings }: H
   );
 }
 
-function TaskCard({ task, onPick }: { task: Task; onPick: () => void }) {
+function TaskCard({
+  task,
+  index,
+  onPick,
+}: {
+  task: Task;
+  index: number;
+  onPick: () => void;
+}) {
   return (
     <button type="button" className="task-card" onClick={onPick}>
-      <div className="row" style={{ justifyContent: "space-between" }}>
+      <div className="task-head">
         <span className="task-icon">
-          <Icon name={task.icon} size={22} />
+          <Icon name={task.icon} size={26} />
         </span>
         {/* Honest before the click, not after. */}
-        {!task.available && task.downloadMB > 0 && (
+        {!task.available && task.downloadMB > 0 ? (
           <span className="badge badge-warn">+{task.downloadMB} MB</span>
-        )}
-        {!task.available && task.downloadMB === 0 && (
+        ) : !task.available ? (
           <span className="badge badge-warn">Needs setup</span>
+        ) : (
+          <span className="task-index">{String(index).padStart(3, "0")}</span>
         )}
       </div>
       <span className="task-name">{task.name}</span>

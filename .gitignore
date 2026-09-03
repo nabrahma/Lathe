@@ -5,6 +5,8 @@
 frontend/dist/*
 !frontend/dist/.gitkeep
 frontend/node_modules/
+# Wails writes this beside package.json to detect dependency changes.
+frontend/package.json.md5
 frontend/wailsjs/
 
 # Local toolchain (kept inside the project, never committed)

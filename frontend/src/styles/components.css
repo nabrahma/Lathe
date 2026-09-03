@@ -33,13 +33,17 @@
 }
 
 .wordmark {
-  font: 500 0.8125rem / 1 var(--mono);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--gap-3);
+  font: 400 0.8125rem / 1 var(--mono);
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--fg);
+  transition: color var(--t-fast) var(--ease);
 }
 
-.wordmark span {
+.wordmark:hover {
   color: var(--hi);
 }
 
@@ -76,7 +80,7 @@
   gap: var(--gap-2);
   height: 36px;
   padding: 0 var(--gap-4);
-  font: 500 0.75rem / 1 var(--mono);
+  font: 400 0.75rem / 1 var(--mono);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   border: var(--hair) solid transparent;
@@ -138,29 +142,67 @@
 
 .task-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-  gap: var(--gap-3);
+  grid-template-columns: repeat(auto-fill, minmax(238px, 1fr));
+  gap: var(--gap-4);
 }
 
+/*
+ * A card is mostly air. The icon sits alone at the top, the name and the line
+ * of explanation sit at the bottom, and the space between them is what stops
+ * a wall of twenty-seven cards reading as a list of table rows.
+ */
 .task-card {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: var(--gap-2);
-  padding: var(--gap-4);
+  padding: var(--gap-5);
   text-align: left;
   background: var(--ink-200);
   border: var(--hair) solid var(--line);
-  transition: border-color var(--t-fast) var(--ease);
-  min-height: 104px;
+  transition: background var(--t-fast) var(--ease),
+    border-color var(--t-fast) var(--ease);
+  min-height: 148px;
 }
 
-/* No lift, no scale, no shadow. */
+/* Still no lift, no scale, no shadow. The card lights up where it sits. */
 .task-card:hover {
+  background: var(--ink-hover);
   border-color: var(--hi);
 }
 
-.task-card:hover .task-icon {
+/* A rule that draws itself along the bottom edge, the one piece of motion on
+   the screen. */
+.task-card::after {
+  content: "";
+  position: absolute;
+  left: -1px;
+  right: -1px;
+  bottom: -1px;
+  height: 2px;
+  background: var(--hi);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--t-fast) var(--ease);
+}
+
+.task-card:hover::after,
+.task-card:focus-visible::after {
+  transform: scaleX(1);
+}
+
+.task-card:hover .task-icon,
+.task-card:hover .task-index {
   color: var(--hi);
+}
+
+.task-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--gap-3);
+  margin-bottom: auto;
+  padding-bottom: var(--gap-4);
 }
 
 .task-icon {
@@ -168,14 +210,24 @@
   transition: color var(--t-fast) var(--ease);
 }
 
+/* The catalogue number. Every task has a fixed position in the registry, and
+   showing it makes the grid feel indexed rather than arbitrary. */
+.task-index {
+  font: 400 0.6875rem / 1 var(--mono);
+  letter-spacing: 0.1em;
+  color: var(--fg-low);
+  transition: color var(--t-fast) var(--ease);
+  font-variant-numeric: tabular-nums;
+}
+
 .task-name {
-  font: 500 1rem / 1.25 var(--mono);
+  font: 400 1rem / 1.25 var(--mono);
   text-transform: uppercase;
   color: var(--fg);
 }
 
 .task-desc {
-  font: 400 0.8125rem / 1.4 var(--sans);
+  font: 400 0.8125rem / 1.45 var(--sans);
   color: var(--fg-mid);
 }
 
@@ -188,9 +240,75 @@
   color: var(--fg-low);
 }
 
+/* --------------------------------------------------------------- masthead */
+
+.masthead {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-4);
+  padding-bottom: var(--gap-2);
+}
+
+/*
+ * The masthead reads as a line of terminal output rather than a heading: one
+ * weight, no caps, and a block cursor holding the end of the sentence.
+ */
+.masthead h1 {
+  font: 300 1.5rem / 1.4 var(--mono);
+  letter-spacing: -0.005em;
+  color: var(--fg);
+  margin: 0;
+  max-width: 52ch;
+}
+
+/* One sentence per line, so the break is deliberate rather than wherever the
+   window happens to be wide. */
+.masthead h1 span {
+  display: block;
+  color: var(--fg-mid);
+}
+
+.masthead h1 span::after {
+  content: "";
+  display: inline-block;
+  width: 0.5em;
+  height: 1em;
+  margin-left: 0.35em;
+  background: var(--hi);
+  vertical-align: -0.14em;
+}
+
+/* ------------------------------------------------------------ section head */
+
+/*
+ * A section header is a label, a leader of dots running to the far side, and
+ * the count. Borrowed from a drawing schedule, and it gives every band of the
+ * grid a horizon line to sit under.
+ */
+.section-head {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-4);
+}
+
+.section-rule {
+  flex: 1;
+  height: 1px;
+  background-image: radial-gradient(circle, var(--line) 1px, transparent 1px);
+  background-size: 6px 1px;
+  background-repeat: repeat-x;
+}
+
+.section-count {
+  font: 400 0.6875rem / 1 var(--mono);
+  letter-spacing: 0.1em;
+  color: var(--fg-low);
+  font-variant-numeric: tabular-nums;
+}
+
 /* A tier badge is honest before the click, not after. */
 .badge {
-  font: 500 0.6875rem / 1.3 var(--mono);
+  font: 400 0.6875rem / 1.3 var(--mono);
   letter-spacing: 0.1em;
   text-transform: uppercase;
   padding: 2px 6px;
@@ -237,7 +355,7 @@
 }
 
 .kbd {
-  font: 500 0.6875rem / 1 var(--mono);
+  font: 400 0.6875rem / 1 var(--mono);
   letter-spacing: 0.06em;
   color: var(--fg-low);
   border: var(--hair) solid var(--line);
@@ -247,8 +365,8 @@
 /* -------------------------------------------------------------- drop zone */
 
 /*
- * The one bold element. Boldness is spent here because this is the interaction
- * the whole product is built around.
+ * The one element given real size. The space is spent here because this is the
+ * interaction the whole product is built around.
  */
 .dropzone {
   position: relative;
@@ -261,7 +379,7 @@
 }
 
 .dropzone-title {
-  font: 500 1.125rem / 1.25 var(--mono);
+  font: 400 1.125rem / 1.25 var(--mono);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--fg-low);
@@ -367,7 +485,7 @@
 }
 
 .option-label {
-  font: 500 0.75rem / 1.2 var(--mono);
+  font: 400 0.75rem / 1.2 var(--mono);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--fg-mid);
@@ -394,7 +512,7 @@
 }
 
 .choice-label {
-  font: 500 0.8125rem / 1.2 var(--mono);
+  font: 400 0.8125rem / 1.2 var(--mono);
   text-transform: uppercase;
   color: var(--fg-mid);
   display: block;
@@ -493,7 +611,7 @@
 }
 
 .more-options {
-  font: 500 0.75rem / 1.2 var(--mono);
+  font: 400 0.75rem / 1.2 var(--mono);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--fg-mid);
@@ -624,7 +742,7 @@
 }
 
 .dialog-title {
-  font: 500 1.125rem / 1.25 var(--mono);
+  font: 400 1.125rem / 1.25 var(--mono);
   text-transform: uppercase;
   color: var(--fg);
 }
@@ -660,9 +778,9 @@
 .screen {
   display: flex;
   flex-direction: column;
-  gap: var(--gap-5);
-  padding: var(--gap-5);
-  max-width: 980px;
+  gap: var(--gap-6);
+  padding: var(--gap-6) var(--gap-6) var(--gap-8);
+  max-width: var(--measure);
   width: 100%;
   margin: 0 auto;
 }

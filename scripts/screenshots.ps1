@@ -96,6 +96,10 @@ function Invoke-Click([int] $x, [int] $y, [int] $settle = 1200) {
   Start-Sleep -Milliseconds $settle
 }
 
+# Results from an earlier capture would otherwise collide, and the run would
+# show "name (2).pdf" rather than the name a first-time user sees.
+Get-ChildItem $demo -Filter "*-compressed*" -ErrorAction SilentlyContinue | Remove-Item -Force
+
 Write-Host "capturing:"
 
 # The whole task grid, with nothing selected.
@@ -108,16 +112,16 @@ Open-App "$demo\Fee Receipt Scan.pdf"
 Save-Shot "02-filtered.png"
 
 # Compress PDF, which arrives with the file already attached.
-Invoke-Click 230 484
+Invoke-Click 236 760
 Save-Shot "03-task.png"
 
 # Run it. The size figures on the result are whatever the app produced.
-Invoke-Click 1164 698 5000
+Invoke-Click 1153 770 6000
 Save-Shot "04-result.png"
 
 # Settings, where the tier system is visible.
 Open-App $null
-Invoke-Click 1200 135
+Invoke-Click 1190 353
 Save-Shot "05-settings.png"
 
 Get-Process lathe -ErrorAction SilentlyContinue | Stop-Process -Force

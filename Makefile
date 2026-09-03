@@ -6,7 +6,7 @@ LDFLAGS := -s -w -X github.com/nabrahma/lathe/internal/version.Version=$(VERSION
 
 export CGO_ENABLED = 0
 
-.PHONY: all tools deps build build-cli dev test test-race test-short lint fmt vet check boundary clean corpus
+.PHONY: all tools deps build build-cli dev test test-race test-short lint fmt vet check boundary clean corpus appicon
 
 all: check build
 
@@ -48,6 +48,9 @@ vet:
 
 boundary:
 	$(GO) run ./scripts/boundary
+
+appicon:
+	go run ./scripts/appicon
 
 corpus:
 	$(GO) run ./scripts/gencorpus
