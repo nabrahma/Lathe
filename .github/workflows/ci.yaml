@@ -31,9 +31,12 @@ jobs:
       - run: go vet ./...
       - name: import boundaries (wails + network)
         run: go run ./scripts/boundary
-      - uses: golangci/golangci-lint-action@v6
+      - uses: golangci/golangci-lint-action@v8
         with:
-          version: latest
+          # Pinned to the version developers run locally. "latest" resolved to
+          # a build made with an older Go than go.mod targets, which it
+          # refuses to lint.
+          version: v2.13.2
 
   test:
     name: test (${{ matrix.os }})
@@ -135,4 +138,6 @@ jobs:
         run: bash scripts/linux-deps.sh
       - name: build core
         shell: bash
+        env:
+          GOTOOLCHAIN: auto
         run: go build -tags webkit2_41 ./... && go test ./internal/...
