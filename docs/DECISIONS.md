@@ -95,3 +95,94 @@ PDF, the already-present engines handle it.
 
 **Consequence.** Page rendering fidelity is lower than pdfium's for pages with
 complex vector content. Recorded honestly in `KNOWN_GAPS.md`.
+
+## D7. Ghostscript as an optional enhancement, not a tier
+
+**Decision.** Compress PDF uses Ghostscript when it is already installed, and
+falls back to the built-in pdfcpu path when it is not. No task requires it,
+nothing prompts for a download, and it sits in its own tier that gates nothing.
+
+**Why.** Downsampling is the whole difference on a large scan, and pdfcpu
+cannot do it: it replaces an image object in place and demands identical pixel
+dimensions, so quality is the only lever. Ghostscript does downsample. But
+Compress PDF is a core task that has to work on a bare install, so making it
+depend on an external tool would be a worse product than compressing less far.
+
+**Alternatives rejected.** Bundling Ghostscript: Artifex ships platform
+installers rather than portable checksummed archives, so it fails the same
+verification rule that made Tesseract and LibreOffice detected rather than
+downloaded. Making it a required tier: it would put a download prompt in front
+of the most used task in the app.
+
+**Consequence.** The same file compresses further on a machine that has
+Ghostscript than on one that does not, so two results are not directly
+comparable. Recorded in `KNOWN_GAPS.md`.
+
+## D8. Keep Go's JPEG encoder, despite jpegli
+
+**Decision.** Image and PDF compression keep the standard library's
+`image/jpeg` encoder.
+
+**Why.** jpegli is reported to beat libjpeg-turbo and MozJPEG on human
+preference at matched size, and `gen2brain/jpegli` provides it CGo-free through
+wazero, so it looked like a free upgrade. Measured on this project's own corpus
+it was not: matching the standard library's SSIM required 9 to 22 percent
+**more** bytes on clean sources, and it only won on one already-compressed
+photograph at the highest quality setting.
+
+The published claim is about human preference, which cannot be asserted in a
+test. The measurable claim went the other way, and shipping an encoder that
+makes files larger on the metric available would contradict the numbers the
+README publishes.
+
+**Consequence.** Compression is a little behind what a perceptually tuned
+encoder could achieve. Revisit if a Go implementation of butteraugli or
+SSIMULACRA2 appears, which would make the trade measurable rather than
+asserted.
+
+## D9. Sauvola binarisation, with the lighting flattened first
+
+**Decision.** The OCR preprocessing chain flattens the page lighting before any
+step that reads the page as a whole, and binarises with Sauvola's method rather
+than Otsu's.
+
+**Why.** Otsu picks one intensity to separate ink from paper across the entire
+page. That is the right question for a flatbed scan and the wrong one for a
+photograph: a shadow lying across the page forces a single choice to serve both
+halves at once, light enough to keep the shaded paper white and the faint
+strokes wash out, dark enough to catch them and the shadow becomes a block of
+ink. Sauvola asks the question per pixel instead, against that pixel's own
+surroundings, which makes the gradient irrelevant because the paper beside a
+stroke lies in the same shadow as the stroke.
+
+The ordering was the larger surprise. Deskew scores a rotation by how much the
+row darkness varies, and the border trim crops rows that are mostly dark; under
+a shadow both are measuring the lighting rather than the page, and the trim
+quietly removes shaded text as though it were the dark edge of a desk.
+Flattening after these steps left 84.7 percent on a lit gradient; flattening
+before them gave 100 percent.
+
+Measured on the corpus under a hard-edged shadow, the case a coarse estimate of
+the lighting cannot follow:
+
+| Chain | Accuracy |
+|---|---:|
+| Otsu, no flattening | 37% |
+| Otsu, lighting flattened | 68% |
+| Sauvola, lighting flattened | 99% |
+
+All three are identical, at 100 percent, on an evenly lit page, so neither step
+costs anything on easy input.
+
+**Alternatives rejected.** Flattening alone, which is cheaper than Sauvola, gets
+two thirds of the way and stops: it estimates the lighting on a coarse grid,
+which follows a gradient closely and cannot follow a step at all. Sauvola's own
+parameters were swept from k=0.15 to k=0.34 and across three window sizes; once
+flattening was in place the spread was a third of a point, which four passages
+cannot resolve, so k stays at the value in common use rather than being fitted
+to the noise.
+
+**Consequence.** Two extra passes over the image, both linear: the flattening
+estimate is a coarse grid, and Sauvola runs off summed-area tables so the window
+size does not affect the cost. Neither is measurable beside Tesseract itself.
+

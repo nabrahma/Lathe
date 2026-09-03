@@ -30,11 +30,16 @@ const (
 type Tier uint8
 
 // Tiers, in install order. Core and Bundled ship with the app.
+//
+// TierEnhance is the odd one: no task requires it. It holds components that
+// make a task better when they happen to be present, so the work still runs
+// without them rather than stopping to ask for a download.
 const (
 	TierCore Tier = iota
 	TierBundled
 	TierMedia
 	TierOffice
+	TierEnhance
 )
 
 // String renders a tier for logs and the settings screen.
@@ -48,6 +53,8 @@ func (t Tier) String() string {
 		return "media"
 	case TierOffice:
 		return "office"
+	case TierEnhance:
+		return "enhance"
 	default:
 		return "unknown"
 	}

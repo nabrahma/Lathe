@@ -31,6 +31,7 @@ each keeps its own licence.
 | [Tesseract](https://github.com/tesseract-ocr/tesseract) | Apache-2.0 | Detected on your system |
 | [tessdata_fast](https://github.com/tesseract-ocr/tessdata_fast) | Apache-2.0 | Downloaded on request |
 | [LibreOffice](https://www.libreoffice.org) | MPL-2.0 | Detected on your system |
+| [Ghostscript](https://www.ghostscript.com) | AGPL-3.0 | Detected on your system, optional |
 
 **Why this distinction matters.** The FFmpeg static builds are GPL. Because
 Lathe downloads them at runtime rather than bundling them, and communicates

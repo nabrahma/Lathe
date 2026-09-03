@@ -37,6 +37,7 @@ var baselines = map[string]float64{
 	"clean":  0.98,
 	"photo":  0.98,
 	"lowres": 0.97,
+	"shadow": 0.97,
 }
 
 type accuracyResult struct {
@@ -127,6 +128,8 @@ func subsetOf(name string) string {
 		return "photo"
 	case strings.HasSuffix(name, "-lowres.jpg"):
 		return "lowres"
+	case strings.HasSuffix(name, "-shadow.jpg"):
+		return "shadow"
 	default:
 		return ""
 	}
@@ -134,7 +137,7 @@ func subsetOf(name string) string {
 
 func passageOf(name string) string {
 	base := strings.TrimSuffix(name, filepath.Ext(name))
-	for _, suffix := range []string{"-clean", "-photo", "-lowres"} {
+	for _, suffix := range []string{"-clean", "-photo", "-lowres", "-shadow"} {
 		base = strings.TrimSuffix(base, suffix)
 	}
 	return base

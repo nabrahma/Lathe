@@ -32,6 +32,18 @@ that are missing on purpose, with the reason.
   Pages with complex vector artwork may not. See `DECISIONS.md` D5.
 - **OCR on a phone photo is not OCR on a scan.** Measured accuracy for both is
   published in the README rather than described with an adjective.
+- **The OCR corpus is rendered, not photographed.** The pages are drawn from a
+  digital font and then degraded in code, which is a kinder target than a
+  photograph of physically printed paper: real accuracy on a creased receipt
+  under a desk lamp will be lower than the published figures. The benchmark
+  earns its place by catching regressions in the preprocessing chain, not by
+  predicting field accuracy. Replacing it with photographs of real documents
+  needs ground truth nobody has transcribed yet.
+- **Recognition itself is Tesseract, and that is the ceiling here.** The
+  transformer recognisers that beat it, PaddleOCR and its kin, need ONNX
+  Runtime, whose Go bindings require cgo; adopting them would cost the pure-Go
+  CLI described in `DECISIONS.md` D2. The preprocessing in front of Tesseract
+  has been measured and improved instead. See `DECISIONS.md` D9.
 
 ## Platform inconsistencies
 
@@ -40,20 +52,23 @@ that are missing on purpose, with the reason.
 - **Windows builds are unsigned** until the project can justify a certificate.
   The README shows exactly what SmartScreen displays and which button to click.
 
-## PDF compression cannot reduce resolution
+## PDF compression only reduces resolution when Ghostscript is installed
 
 Compressing a PDF re-encodes the pictures inside it, which is what shrinks a
 scan: pdfcpu's optimiser is lossless, so on a scanned document it removes
 almost nothing, because the pictures *are* the file.
 
-What it cannot do is downsample them. pdfcpu replaces an image object in place
-and requires the replacement to have identical pixel dimensions, so a 600 DPI
-scan stays 600 DPI and only the JPEG quality changes. Quality alone still does
-most of the work, since scanners write at a quality far above what text needs,
-but a tool that could also halve the resolution would go further on the largest
-files.
+What the built-in path cannot do is downsample them. pdfcpu replaces an image
+object in place and requires the replacement to have identical pixel
+dimensions, so a 600 DPI scan stays 600 DPI and only the JPEG quality changes.
 
-Doing better means rebuilding the document from downsampled page images, which
-is correct for a pure scan and destructive for anything with a text layer,
-links or form fields. That distinction has to be detected reliably before the
-rebuild path is worth offering, so it is not in v1.
+Lathe therefore uses Ghostscript when it is present, which does downsample, and
+that is most of the saving on a large scan. It is deliberately optional: no
+task requires it, nothing prompts for a download, and without it compression
+still runs on the built-in path. The consequence worth knowing is that the same
+file compresses further on a machine that has Ghostscript than on one that does
+not.
+
+Bundling it instead was rejected for the reason Tesseract and LibreOffice are
+detected rather than downloaded: Artifex ships platform installers, not
+portable checksummed archives. See `BUNDLING.md`.

@@ -40,7 +40,8 @@ That rule then decides which components can be downloaded at all:
 
 - **FFmpeg publishes portable, checksummed static builds for all three
   platforms.** So Lathe downloads it, verifies it, and installs it atomically.
-- **Tesseract and LibreOffice ship platform installers, not portable archives.**
+- **Tesseract, LibreOffice and Ghostscript ship platform installers, not
+  portable archives.**
   There is no archive of LibreOffice with a published SHA-256 that Lathe could
   unpack into a private directory. The options were to bundle an unverified
   binary from a third party, which would make the checksum rule theatre, or to
@@ -52,6 +53,19 @@ already there and only the manifest entry needs updating.
 
 A component already on the machine is always preferred. Someone who has FFmpeg
 installed is never asked to download a second copy of it.
+
+## Components that gate nothing
+
+Ghostscript is the one entry that no task requires. It sits in its own tier so
+that nothing ever waits on it: Compress PDF runs on the built-in path, and when
+Ghostscript happens to be installed the same job also goes through it and the
+smaller of the two results is kept.
+
+That shape exists because Compress PDF is a core task. Making the most used
+feature in the app depend on an external tool would be a worse product than
+compressing less far, and prompting for a download in front of it would be
+worse still. The cost is that results are machine-dependent, which
+`KNOWN_GAPS.md` states plainly.
 
 ## What the manager guarantees
 

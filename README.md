@@ -92,8 +92,15 @@ Measured on the sample scan from `scripts/demofiles`:
 | Best quality | 1.5 MB to 493 kB, 66% smaller |
 
 A PDF that is already tight comes back untouched with a note saying so, rather
-than being returned slightly larger. What Lathe cannot do is reduce a scan's
-resolution, and that limit is explained in [KNOWN_GAPS.md](docs/KNOWN_GAPS.md).
+than being returned slightly larger.
+
+Those figures are what a bare install produces. If Ghostscript happens to be
+installed, Lathe also runs the file through it and keeps whichever result is
+smaller, which helps most at the best-quality setting because Ghostscript can
+lower a scan's resolution and the built-in path cannot. Nothing prompts you to
+install it and no task requires it. The reasoning is in
+[DECISIONS.md](docs/DECISIONS.md) D7, and the limit it lifts in
+[KNOWN_GAPS.md](docs/KNOWN_GAPS.md).
 
 ## Install size
 
@@ -138,7 +145,8 @@ Character-level accuracy against committed ground truth, from
 |---|---:|
 | Clean scan | 100% |
 | Skewed, unevenly lit, noisy | 100% |
-| A third of the resolution | 99.9% |
+| Hard-edged shadow across the page | 99.6% |
+| A third of the resolution | 99.8% |
 
 **Read that table with the caveat it deserves.** The corpus is rendered from
 digital text and then degraded programmatically, which is an easier target than
@@ -147,10 +155,21 @@ crumpled receipt will be lower. What the benchmark is genuinely good for is catc
 regression in the preprocessing chain, and CI fails if any figure drops by more
 than two points.
 
-The preprocessing is why the skewed and noisy set scores as well as the clean
-one: Lathe deskews, thresholds with Otsu's method, denoises, trims the dark
-border from a page photographed on a desk, and upscales below roughly 300 DPI
-before Tesseract ever sees the image.
+The preprocessing is why the degraded sets score close to the clean one. Lathe
+flattens the lighting, deskews, trims the dark border from a page photographed
+on a desk, denoises, upscales below roughly 300 DPI, and only then binarises,
+using Sauvola's method: a threshold chosen for every pixel from its own
+surroundings rather than one chosen for the whole page.
+
+Those last two steps are the ones that were measured rather than assumed. On a
+page with a hard-edged shadow across it, the kind cast by your own hand or by
+the gutter of a bound book, a single threshold for the page reads 37% of the
+text and a local one reads 99%. Flattening the lighting first, before the
+deskew and the border trim rather than after them, is worth a further fifteen
+points, because both of those steps judge a page by how dark its rows are and a
+shadow makes them answer about the lighting instead. The comparison is
+[internal/engine/ocrengine/binarize_test.go](internal/engine/ocrengine/binarize_test.go)
+and it fails if either choice is undone.
 
 ## Privacy
 
@@ -218,8 +237,8 @@ Needs Go 1.25+, Node 22+ and, on Linux, `libgtk-3-dev` and
 `libwebkit2gtk-4.1-dev`. `scripts/linux-deps.sh` installs those across
 Debian, Fedora and Arch.
 
-`build/docker/test.Dockerfile` carries Tesseract and FFmpeg, so the OCR and
-media suites run on a machine that has neither:
+`build/docker/test.Dockerfile` carries Tesseract, FFmpeg and Ghostscript, so the
+OCR, media and compression suites run on a machine that has none of them:
 
 ```
 docker build -f build/docker/test.Dockerfile -t lathe-test .

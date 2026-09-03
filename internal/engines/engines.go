@@ -18,7 +18,7 @@ import (
 // Default returns every engine, wired to the given component manager.
 func Default(m deps.Manager) *engine.Registry {
 	return engine.NewRegistry(
-		pdfengine.New(),
+		pdfengine.New().WithComponents(m),
 		imageengine.New(),
 		ocrengine.New(m),
 		ffmpegengine.New(m),

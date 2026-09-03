@@ -90,6 +90,13 @@ func writeOCRCorpus() error {
 		if err := writeJPEG(filepath.Join(dir, p.name+"-photo.jpg"), photograph(page, p.name), 78); err != nil {
 			return err
 		}
+		// A photo with a hard-edged shadow across it, cast by the reader's own
+		// hand or by the gutter of a bound book. A single threshold for the
+		// whole page cannot answer this one, so it is the rendering that tells
+		// the preprocessing chain apart from a naive one.
+		if err := writeJPEG(filepath.Join(dir, p.name+"-shadow.jpg"), shadowCast(photograph(page, p.name)), 78); err != nil {
+			return err
+		}
 		// A low-resolution capture, which is where accuracy genuinely suffers.
 		small := imaging.Resize(page, 0, page.Bounds().Dy()/3, imaging.Lanczos)
 		if err := writeJPEG(filepath.Join(dir, p.name+"-lowres.jpg"), small, 60); err != nil {
@@ -181,6 +188,40 @@ func photograph(src image.Image, seed string) image.Image {
 		}
 	}
 	return imaging.Blur(out, 0.6)
+}
+
+// shadowCast lays a hard-edged shadow across the right of the page. Unlike the
+// vignette in photograph, this is a step rather than a gradient: no estimate of
+// the lighting made on a coarse grid can follow it, which is what makes it the
+// demanding case.
+func shadowCast(src image.Image) image.Image {
+	const (
+		edge  = 0.45 // fraction across the page where the shadow begins
+		floor = 0.18 // light remaining inside it
+		blur  = 0.02 // width of the penumbra, as a fraction of the page
+	)
+
+	b := src.Bounds()
+	out := image.NewRGBA(b)
+	for y := b.Min.Y; y < b.Max.Y; y++ {
+		for x := b.Min.X; x < b.Max.X; x++ {
+			u := float64(x-b.Min.X) / float64(b.Dx())
+
+			// A real shadow has a narrow soft edge rather than a perfect step.
+			t := (u - (edge - blur)) / (2 * blur)
+			t = math.Max(0, math.Min(1, t))
+			light := 1 - (1-floor)*(t*t*(3-2*t))
+
+			r, g, bl, _ := src.At(x, y).RGBA()
+			out.Set(x, y, color.RGBA{
+				R: clamp(float64(r>>8) * light),
+				G: clamp(float64(g>>8) * light),
+				B: clamp(float64(bl>>8) * light),
+				A: 255,
+			})
+		}
+	}
+	return out
 }
 
 func clamp(v float64) uint8 {

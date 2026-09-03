@@ -1,8 +1,9 @@
 {
   "summaryBySubset": {
     "clean": 1,
-    "lowres": 0.9990196078431373,
-    "photo": 1
+    "lowres": 0.9984848484848485,
+    "photo": 1,
+    "shadow": 0.996078431372549
   },
   "files": [
     {
@@ -21,6 +22,11 @@
       "accuracy": 1
     },
     {
+      "subset": "shadow",
+      "file": "instructions-shadow.jpg",
+      "accuracy": 1
+    },
+    {
       "subset": "clean",
       "file": "letter-clean.png",
       "accuracy": 1
@@ -36,6 +42,11 @@
       "accuracy": 1
     },
     {
+      "subset": "shadow",
+      "file": "letter-shadow.jpg",
+      "accuracy": 1
+    },
+    {
       "subset": "clean",
       "file": "notice-clean.png",
       "accuracy": 1
@@ -43,12 +54,17 @@
     {
       "subset": "lowres",
       "file": "notice-lowres.jpg",
-      "accuracy": 0.996078431372549
+      "accuracy": 1
     },
     {
       "subset": "photo",
       "file": "notice-photo.jpg",
       "accuracy": 1
+    },
+    {
+      "subset": "shadow",
+      "file": "notice-shadow.jpg",
+      "accuracy": 0.9843137254901961
     },
     {
       "subset": "clean",
@@ -58,11 +74,16 @@
     {
       "subset": "lowres",
       "file": "receipt-lowres.jpg",
-      "accuracy": 1
+      "accuracy": 0.9939393939393939
     },
     {
       "subset": "photo",
       "file": "receipt-photo.jpg",
+      "accuracy": 1
+    },
+    {
+      "subset": "shadow",
+      "file": "receipt-shadow.jpg",
       "accuracy": 1
     }
   ]

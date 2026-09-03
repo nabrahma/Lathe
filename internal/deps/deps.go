@@ -32,6 +32,7 @@ const (
 	TierBundled = task.TierBundled
 	TierMedia   = task.TierMedia
 	TierOffice  = task.TierOffice
+	TierEnhance = task.TierEnhance
 )
 
 // Component is an external dependency Lathe manages.
@@ -58,6 +59,10 @@ type Component struct {
 	// waiting or printing, while soffice.com is the console front-end that
 	// actually reports a version and blocks until the conversion finishes.
 	WindowsExt string `json:"-"`
+	// WindowsNames renames binaries on Windows, for publishers who ship a
+	// different executable name there. Ghostscript needs it: the console
+	// build is gswin64c.exe, not gs.exe.
+	WindowsNames map[string]string `json:"-"`
 
 	// Sources are the per-platform download locations, keyed by GOOS/GOARCH,
 	// or the single key "any" for a platform-independent file.
@@ -84,6 +89,16 @@ func (c Component) winExt() string {
 		return c.WindowsExt
 	}
 	return ".exe"
+}
+
+// binName is the executable name to look for on this platform.
+func (c Component) binName(binary string) string {
+	if runtime.GOOS == "windows" {
+		if alt, ok := c.WindowsNames[binary]; ok {
+			binary = alt
+		}
+	}
+	return binary + c.winExt()
 }
 
 // Hint returns the install advice for the running platform.
@@ -340,14 +355,14 @@ func (m *manager) BinaryPath(componentID, binary string) (string, error) {
 	// is not surprised by a different version found on PATH.
 	dir := m.dirOf(componentID)
 	if _, err := os.Stat(dir); err == nil {
-		if found, err := findBinary(dir, binary+c.winExt()); err == nil {
+		if found, err := findBinary(dir, c.binName(binary)); err == nil {
 			return found, nil
 		}
 	}
 
 	// Then an existing system installation. Someone who already has FFmpeg
 	// should not be asked to download a second copy of it.
-	if found, ok := findOnSystem(binary+c.winExt(), c.SearchPaths); ok {
+	if found, ok := findOnSystem(c.binName(binary), c.SearchPaths); ok {
 		return found, nil
 	}
 	return "", fmt.Errorf("%w: %s", ErrNotInstalled, c.DisplayName)
@@ -365,8 +380,37 @@ func findOnSystem(name string, searchPaths []string) (string, bool) {
 		if info, err := os.Stat(candidate); err == nil && !info.IsDir() {
 			return candidate, true
 		}
+		// Some installers put the binary in a versioned subdirectory rather
+		// than the root: Ghostscript on Windows lands in gs\gs10.07.1in.
+		if p, ok := findNearby(dir, name, 3); ok {
+			return p, true
+		}
 	}
 	return "", false
+}
+
+// findNearby looks for name under dir, no deeper than maxDepth. The search
+// paths are specific product directories rather than Program Files itself, so
+// this stays small.
+func findNearby(dir, name string, maxDepth int) (string, bool) {
+	var found string
+	_ = filepath.WalkDir(dir, func(p string, d os.DirEntry, err error) error {
+		if err != nil {
+			return nil //nolint:nilerr // skip unreadable subtrees
+		}
+		if found != "" {
+			return filepath.SkipAll
+		}
+		rel, relErr := filepath.Rel(dir, p)
+		if relErr == nil && strings.Count(rel, string(os.PathSeparator)) > maxDepth {
+			return filepath.SkipDir
+		}
+		if !d.IsDir() && strings.EqualFold(d.Name(), name) {
+			found = p
+		}
+		return nil
+	})
+	return found, found != ""
 }
 
 func (m *manager) DiskUsage() map[string]int64 {

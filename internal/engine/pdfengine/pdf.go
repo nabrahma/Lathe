@@ -3,6 +3,11 @@
 // It needs no external binary and no downloaded component, so PDF work is
 // available the moment Lathe is installed. That is the reason the PDF tasks
 // are the ones on the home screen by default.
+//
+// Compression is the one place that will use an external tool when it happens
+// to be there: Ghostscript can lower the resolution of a scanned page, which
+// pdfcpu cannot, and that is most of the difference on a large scan. It stays
+// strictly optional, so the task never stops to ask for a download.
 package pdfengine
 
 import (
@@ -17,15 +22,28 @@ import (
 	"github.com/pdfcpu/pdfcpu/pkg/pdfcpu/model"
 	"github.com/pdfcpu/pdfcpu/pkg/pdfcpu/types"
 
+	"github.com/nabrahma/lathe/internal/deps"
 	"github.com/nabrahma/lathe/internal/engine"
+	lexec "github.com/nabrahma/lathe/internal/exec"
 	"github.com/nabrahma/lathe/internal/usererr"
 )
 
 // Engine performs PDF tasks.
-type Engine struct{}
+type Engine struct {
+	// deps is optional. Without it the engine uses only what is compiled in.
+	deps   deps.Manager
+	runner lexec.Runner
+}
 
-// New returns the PDF engine.
-func New() *Engine { return &Engine{} }
+// New returns the PDF engine, using only what is compiled into the binary.
+func New() *Engine { return &Engine{runner: lexec.New()} }
+
+// WithComponents lets the engine reach for an optional external tool when one
+// is installed. Nothing becomes unavailable without it.
+func (e *Engine) WithComponents(m deps.Manager) *Engine {
+	e.deps = m
+	return e
+}
 
 // ID identifies the engine in the task registry.
 func (e *Engine) ID() string { return "pdfcpu" }
@@ -41,7 +59,7 @@ func (e *Engine) Execute(ctx context.Context, req engine.Request, progress func(
 
 	switch req.Task.ID {
 	case "pdf.compress":
-		return compress(req, progress)
+		return e.compress(ctx, req, progress)
 	case "pdf.merge":
 		return merge(req, progress)
 	case "pdf.split":
@@ -105,7 +123,7 @@ func pageCount(path, password string) (int, error) {
 	return n, nil
 }
 
-func compress(req engine.Request, progress func(engine.Progress)) (*engine.Response, error) {
+func (e *Engine) compress(ctx context.Context, req engine.Request, progress func(engine.Progress)) (*engine.Response, error) {
 	in := req.Inputs[0]
 	out := req.Workspace.UniqueName(outputName(in, "-compressed"))
 	password := req.Options.String("password", "")
@@ -154,7 +172,33 @@ func compress(req engine.Request, progress func(engine.Progress)) (*engine.Respo
 		notes = append(notes, fmt.Sprintf("%s recompressed at %s quality.",
 			plural(changed, "picture"), qualityWord(quality)))
 	}
+
+	// Then Ghostscript, when it is installed, and keep whichever result is
+	// actually smaller. Which one wins depends on the document: Ghostscript
+	// downsamples, which the built-in path cannot, but on a page whose images
+	// are already modest it can come out behind. Comparing is the only way to
+	// be sure the optional tool never makes things worse.
+	if e.ghostscriptAvailable() {
+		progress(engine.Indeterminate("Trying a stronger compressor"))
+		candidate := req.Workspace.Path("ghostscript.pdf")
+		if e.compressWithGhostscript(ctx, in, candidate, password, quality) {
+			if smaller(candidate, out) {
+				if err := os.Rename(candidate, out); err == nil {
+					notes = []string{gsNote(quality)}
+				}
+			}
+		}
+		_ = os.Remove(candidate)
+	}
+
 	return &engine.Response{Outputs: []string{out}, Notes: notes}, nil
+}
+
+// smaller reports whether a is a smaller file than b. A missing file loses.
+func smaller(a, b string) bool {
+	ai, err1 := os.Stat(a)
+	bi, err2 := os.Stat(b)
+	return err1 == nil && err2 == nil && ai.Size() < bi.Size()
 }
 
 func qualityWord(quality string) string {

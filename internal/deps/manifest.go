@@ -20,7 +20,7 @@ const ffmpegVersion = "9.0.1"
 
 // Manifest returns every component Lathe knows about.
 func Manifest() []Component {
-	return []Component{ffmpeg(), tesseract(), libreOffice(), tessdata()}
+	return []Component{ffmpeg(), tesseract(), libreOffice(), tessdata(), ghostscript()}
 }
 
 func ffmpeg() Component {
@@ -129,6 +129,39 @@ func libreOffice() Component {
 			"windows": "Install LibreOffice from libreoffice.org, then restart Lathe.",
 			"darwin":  "Install LibreOffice from libreoffice.org, or with: brew install --cask libreoffice",
 			"linux":   "Install LibreOffice with your package manager, for example: sudo apt install libreoffice",
+		},
+	}
+}
+
+// ghostscript makes Compress PDF markedly better when it is present, and is
+// deliberately optional: no task requires it, so a PDF still compresses
+// without it using the built-in path. It is detected rather than downloaded
+// because Artifex ships platform installers, not portable archives.
+func ghostscript() Component {
+	return Component{
+		ID:          "ghostscript",
+		Tier:        TierEnhance,
+		DisplayName: "Stronger PDF compression",
+		Explanation: "Ghostscript, a free open-source PDF engine, can lower the resolution of " +
+			"scanned pages as well as their quality. Without it Lathe still compresses PDFs, " +
+			"just less far.",
+		Version:     "system",
+		Binaries:    []string{"gs"},
+		VersionArgs: []string{"--version"},
+		SystemOnly:  true,
+		// The console build is named differently on Windows, and gswin64c is
+		// the one that writes to stdout instead of opening a window.
+		WindowsNames: map[string]string{"gs": "gswin64c"},
+		SearchPaths: []string{
+			`C:\Program Files\gs`,
+			`C:\Program Files (x86)\gs`,
+			"/usr/bin", "/usr/local/bin",
+			"/opt/homebrew/bin", "/opt/local/bin",
+		},
+		InstallHint: map[string]string{
+			"windows": "Install Ghostscript from ghostscript.com/releases, then restart Lathe.",
+			"darwin":  "Install Ghostscript with: brew install ghostscript",
+			"linux":   "Install Ghostscript with your package manager, for example: sudo apt install ghostscript",
 		},
 	}
 }
