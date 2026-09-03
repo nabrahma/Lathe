@@ -32,6 +32,14 @@ make check   # fmt, vet, boundary, test
 
 `make check` is what CI runs. Run it before you push.
 
+`make test-race` needs a 64-bit C toolchain, which Windows developers usually
+do not have. If `go test -race` refuses to build there, run it in a container
+instead, because CI will:
+
+```sh
+docker run --rm -v "$PWD:/src" -w /src golang:1.25-bookworm go test -race ./internal/... ./test/...
+```
+
 ## Rules the CI enforces
 
 These are not style preferences. Each one is checked by a script and will fail

@@ -120,10 +120,19 @@ jobs:
           sha256sum * > SHA256SUMS
           cat SHA256SUMS
 
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
       - name: software bill of materials
+        env:
+          # cyclonedx-gomod targets a newer Go than this repository does, so it
+          # is allowed to fetch its own toolchain.
+          GOTOOLCHAIN: auto
         run: |
-          go install github.com/CycloneDX/cyclonedx-gomod/cmd/cyclonedx-gomod@latest
-          cyclonedx-gomod mod -json -output dist/sbom.json
+          go install github.com/CycloneDX/cyclonedx-gomod/cmd/cyclonedx-gomod@v1.12.0
+          # go install writes to GOPATH/bin, which is not on PATH here.
+          "$(go env GOPATH)/bin/cyclonedx-gomod" mod -json -output dist/sbom.json
 
       - uses: softprops/action-gh-release@v2
         with:

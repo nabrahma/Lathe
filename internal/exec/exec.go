@@ -108,7 +108,9 @@ type Runner interface {
 	Run(ctx context.Context, cmd string, args []string, opts Options) (*Result, error)
 
 	// RunStreaming is Run plus a callback invoked for each line of output as
-	// it arrives, which is how engines report progress.
+	// it arrives, which is how engines report progress. Stdout and stderr are
+	// read concurrently, but onLine is serialised, so a caller does not need a
+	// lock of its own.
 	RunStreaming(ctx context.Context, cmd string, args []string, opts Options,
 		onLine func(Stream, string)) (*Result, error)
 }
@@ -152,6 +154,17 @@ func (r *runner) RunStreaming(ctx context.Context, name string, args []string, o
 
 	var wg sync.WaitGroup
 	if onLine != nil {
+		// Two readers, one callback. Serialising here rather than asking every
+		// caller to hold its own lock: the FFmpeg engine reports progress from
+		// this callback and would otherwise race on it.
+		var mu sync.Mutex
+		deliver := onLine
+		onLine = func(s Stream, line string) {
+			mu.Lock()
+			defer mu.Unlock()
+			deliver(s, line)
+		}
+
 		outPipe, err := cmd.StdoutPipe()
 		if err != nil {
 			return nil, fmt.Errorf("stdout pipe: %w", err)
