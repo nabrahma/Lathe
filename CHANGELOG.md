@@ -20,6 +20,20 @@ compression, audio extraction and GIF creation.
 that file can actually become, so you never have to know which category
 anything is in.
 
+**Compression measured against itself.** Compressing a PDF runs the built-in
+path and, when Ghostscript is installed, a second pass that can also reduce
+image resolution, then keeps whichever file is actually smaller. On the test
+corpus that is 250 kB against 162 kB at the best-quality setting. Ghostscript is
+optional in the real sense: no task requires it, nothing prompts for it, and the
+comparison means it can never make a file worse.
+
+**OCR that survives a shadow.** A photographed page has its lighting flattened
+before anything else reads it, and is then binarised with Sauvola's method,
+which chooses a threshold for every pixel from its own surroundings rather than
+one for the whole page. On a page with a hard-edged shadow across it, the kind
+cast by your own hand or by the gutter of a bound book, that is the difference
+between reading 37 percent of the text and 99 percent.
+
 **Optional components, downloaded once.** The base install is around 18 MB and
 handles PDF and images with no external binary at all. Video, OCR and Office
 formats each pull a component the first time you ask for them, verified against
@@ -55,7 +69,9 @@ and nothing else, and it never downloads or installs anything by itself.
 ### Known limitations
 
 HEIC needs the media component. PDF to Word is best-effort on complex layouts.
-Compressing a PDF cannot reduce image resolution, only re-encode at lower
-quality, because pdfcpu requires a replacement image to keep its exact pixel
-dimensions. Windows and Linux builds are unsigned. The full list, with reasons,
-is in `docs/KNOWN_GAPS.md`.
+Compressing a PDF reduces image resolution only when Ghostscript is installed;
+without it the built-in path re-encodes at the existing pixel dimensions,
+because pdfcpu requires a replacement image to keep them exactly. Recognition
+itself is Tesseract, and the transformer recognisers that beat it need cgo,
+which would cost the pure-Go command line tool. Windows and Linux builds are
+unsigned. The full list, with reasons, is in `docs/KNOWN_GAPS.md`.

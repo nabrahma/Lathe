@@ -134,8 +134,37 @@ jobs:
           # go install writes to GOPATH/bin, which is not on PATH here.
           "$(go env GOPATH)/bin/cyclonedx-gomod" mod -json -output dist/sbom.json
 
+      # The release page says what changed in the words the changelog uses,
+      # rather than a list of commit subjects. Failing when the section is
+      # missing is deliberate: a release whose body is empty is worse than a
+      # build that stops and says the changelog was never updated.
+      - name: release notes from the changelog
+        env:
+          # Empty unless a tag triggered this run, which is how the manual
+          # workflow_dispatch path is told to fall back to the newest section.
+          TAG: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
+        run: |
+          if [ -n "$TAG" ]; then
+            version="${TAG#v}"
+          else
+            version=$(awk '/^## [0-9]/ { sub(/^## /, ""); print; exit }' CHANGELOG.md)
+            echo "not a tag build, using the newest changelog section: $version"
+          fi
+
+          awk -v want="## $version" '
+            $0 == want { found = 1; next }
+            found && /^## / { exit }
+            found { print }
+          ' CHANGELOG.md > release-notes.md
+
+          if [ ! -s release-notes.md ]; then
+            echo "CHANGELOG.md has no section for $version" >&2
+            exit 1
+          fi
+          cat release-notes.md
+
       - uses: softprops/action-gh-release@v2
         with:
           files: dist/*
-          generate_release_notes: true
+          body_path: release-notes.md
           draft: false
