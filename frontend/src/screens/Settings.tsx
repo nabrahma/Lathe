@@ -1,7 +1,12 @@
 import { useEffect, useState } from "react";
 
 import { Icon } from "../components/Icon";
-import type { ComponentProgress, ComponentStatus, Settings as Prefs } from "../lib/api";
+import type {
+  ComponentProgress,
+  ComponentStatus,
+  Settings as Prefs,
+  ShellIntegrationStatus,
+} from "../lib/api";
 import { api, humanBytes, onEvent } from "../lib/api";
 
 /*
@@ -19,10 +24,12 @@ export function SettingsScreen({ onBack }: SettingsProps) {
   const [components, setComponents] = useState<ComponentStatus[]>([]);
   const [installing, setInstalling] = useState<Record<string, ComponentProgress>>({});
   const [problem, setProblem] = useState("");
+  const [shell, setShell] = useState<ShellIntegrationStatus | null>(null);
 
   useEffect(() => {
     void api.settings().then(setPrefs);
     void api.components().then(setComponents);
+    void api.shellIntegrationStatus().then(setShell);
 
     return onEvent<ComponentProgress>("component:progress", (p) => {
       setInstalling((c) => ({ ...c, [p.componentId]: p }));
@@ -33,7 +40,18 @@ export function SettingsScreen({ onBack }: SettingsProps) {
     if (!prefs) return;
     const next = { ...prefs, ...patch };
     setPrefs(next);
-    void api.saveSettings(next);
+    setProblem("");
+
+    // Saving can fail — the shell entry actually touches the system — so the
+    // toggle is reconciled with what the backend reports afterwards rather
+    // than left showing a change that did not happen.
+    void api
+      .saveSettings(next)
+      .catch((err: unknown) => setProblem(messageOf(err)))
+      .finally(() => {
+        void api.settings().then(setPrefs);
+        void api.shellIntegrationStatus().then(setShell);
+      });
   };
 
   const install = async (id: string) => {
@@ -125,11 +143,18 @@ export function SettingsScreen({ onBack }: SettingsProps) {
             on={prefs.enhanceBeforeOcr}
             onChange={(v) => update({ enhanceBeforeOcr: v })}
           />
-          <Toggle
-            label="Add “Convert with Lathe” to the right-click menu"
-            on={prefs.shellIntegration}
-            onChange={(v) => update({ shellIntegration: v })}
-          />
+          {shell?.supported !== false && (
+            <Toggle
+              label={"Add “Convert with Lathe” to the right-click menu"}
+              on={shell?.installed ?? prefs.shellIntegration}
+              onChange={(v) => update({ shellIntegration: v })}
+            />
+          )}
+          {shell?.supported === false && shell.detail && (
+            <p className="t-prose" style={{ color: "var(--fg-low)" }}>
+              {shell.detail}
+            </p>
+          )}
         </section>
 
         <section className="col" style={{ gap: "var(--gap-4)" }}>

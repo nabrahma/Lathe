@@ -25,6 +25,7 @@ import (
 	"github.com/nabrahma/lathe/internal/job"
 	"github.com/nabrahma/lathe/internal/pipeline"
 	"github.com/nabrahma/lathe/internal/settings"
+	"github.com/nabrahma/lathe/internal/shellint"
 	"github.com/nabrahma/lathe/internal/task"
 	"github.com/nabrahma/lathe/internal/version"
 )
@@ -69,6 +70,9 @@ func New() (*App, error) {
 // any visual detail, so component detection happens after the first paint.
 func (a *App) Startup(ctx context.Context) {
 	a.ctx = ctx
+
+	// Geometry is cheap and has to happen before the window is seen.
+	a.RestoreWindow()
 
 	go func() {
 		// Clear workspaces a previous crash left behind.
@@ -299,8 +303,51 @@ func (a *App) RemoveComponent(id string) error { return a.deps.Remove(id) }
 // Settings returns the user's preferences.
 func (a *App) Settings() settings.Settings { return a.settings.Get() }
 
-// SaveSettings persists preferences.
-func (a *App) SaveSettings(s settings.Settings) error { return a.settings.Save(s) }
+// SaveSettings persists preferences and applies the ones that change something
+// outside Lathe. The shell entry is the only such setting: recording it without
+// acting on it would leave the toggle lying to the user.
+func (a *App) SaveSettings(next settings.Settings) error {
+	previous := a.settings.Get()
+	if err := a.settings.Save(next); err != nil {
+		return err
+	}
+
+	if next.ShellIntegration != previous.ShellIntegration {
+		if err := a.applyShellIntegration(next.ShellIntegration); err != nil {
+			// Put the setting back, so the toggle reflects reality.
+			previous.ShellIntegration = !next.ShellIntegration
+			reverted := next
+			reverted.ShellIntegration = previous.ShellIntegration
+			_ = a.settings.Save(reverted)
+			return err
+		}
+	}
+	return nil
+}
+
+// applyShellIntegration adds or removes the "Convert with Lathe" entry.
+func (a *App) applyShellIntegration(enabled bool) error {
+	integrator := shellint.New()
+	if !enabled {
+		return integrator.Remove()
+	}
+
+	if status := integrator.Status(); !status.Supported {
+		return fmt.Errorf("%s", status.Detail)
+	}
+	executable, err := shellint.Executable()
+	if err != nil {
+		return err
+	}
+	return integrator.Install(executable)
+}
+
+// ShellIntegrationStatus reports whether the context-menu entry is present, so
+// the settings screen can show what is actually true rather than what was last
+// requested.
+func (a *App) ShellIntegrationStatus() shellint.Status {
+	return shellint.New().Status()
+}
 
 // Platform tells the interface which operating system it is on, so it can pick
 // the right modifier key and window chrome without guessing from the user
@@ -344,7 +391,8 @@ func (a *App) RequestScreen(name string) {
 	runtime.EventsEmit(a.ctx, "menu:screen", name)
 }
 
-// SaveWindowState records geometry so the window reopens where it was.
+// SaveWindowState records geometry so the window reopens where it was. A
+// maximised window records the size it would restore to, not the screen size.
 func (a *App) SaveWindowState() {
 	w, h := runtime.WindowGetSize(a.ctx)
 	x, y := runtime.WindowGetPosition(a.ctx)
@@ -383,4 +431,55 @@ func filterPaths(args []string) []string {
 		}
 	}
 	return out
+}
+
+// RestoreWindow puts the window back where it was, unless that position is no
+// longer on any screen. Restoring off-screen leaves someone with a running app
+// and no visible window, which looks exactly like a crash.
+func (a *App) RestoreWindow() {
+	saved := a.settings.Get().Window
+	if saved.Maximised {
+		runtime.WindowMaximise(a.ctx)
+		return
+	}
+	if saved.X < 0 || saved.Y < 0 {
+		runtime.WindowCenter(a.ctx)
+		return
+	}
+
+	if !a.plausiblyOnScreen(saved) {
+		runtime.WindowCenter(a.ctx)
+		return
+	}
+	runtime.WindowSetPosition(a.ctx, saved.X, saved.Y)
+}
+
+// plausiblyOnScreen is a conservative guard against restoring a window nobody
+// can reach.
+//
+// Wails v2 reports each screen's size but not its origin, so the exact bounds
+// of a multi-monitor desktop are not knowable here. What it can rule out is a
+// position far outside any arrangement those sizes could produce — which is
+// what a disconnected second monitor leaves behind. Anything it cannot rule
+// out is allowed through, because wrongly re-centring a window someone
+// deliberately placed is the more annoying failure of the two.
+func (a *App) plausiblyOnScreen(w settings.WindowState) bool {
+	screens, err := runtime.ScreenGetAll(a.ctx)
+	if err != nil || len(screens) == 0 {
+		return false
+	}
+
+	// The widest possible desktop is every screen side by side, and the
+	// tallest is every screen stacked. Allowing both at once is deliberately
+	// generous: it covers any arrangement without needing the origins.
+	var totalWidth, totalHeight int
+	for _, screen := range screens {
+		totalWidth += screen.Size.Width
+		totalHeight += screen.Size.Height
+	}
+
+	// The title bar has to be grabbable, so require a strip of the window to
+	// fall inside that extent rather than merely touching it.
+	const grabbable = 120
+	return w.X+grabbable < totalWidth && w.Y+40 < totalHeight
 }

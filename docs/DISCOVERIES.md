@@ -125,3 +125,24 @@ Each job passes `-env:UserInstallation=file:///…` pointing into its own
 workspace, so the profile is created fresh and removed with the workspace. The
 value must be a `file://` URL, and on Windows that means forward slashes with a
 leading slash before the drive letter.
+
+## Wails v2 reports screen sizes but not screen origins
+
+Restoring a window to its last position needs a guard: if the monitor it was on
+has since been unplugged, restoring the saved coordinates leaves a running app
+with no visible window, which is indistinguishable from a crash.
+
+The obvious implementation asks the runtime for each screen's bounds and checks
+for an intersection. Wails v2's `runtime.Screen` carries `Size` and
+`PhysicalSize` but no `X`/`Y`, so the arrangement of a multi-monitor desktop
+cannot be reconstructed — two 1920-wide screens could be side by side, stacked,
+or overlapping, and the API cannot tell you which.
+
+`internal/app` therefore does the conservative thing: it rules out positions
+beyond the largest extent those sizes could possibly produce, and lets anything
+else through. Wrongly re-centring a window somebody deliberately placed is the
+more irritating of the two failures, so the guard errs towards trusting the
+saved position.
+
+Wails v3 exposes screen bounds properly, and this becomes an exact check when
+the migration happens.

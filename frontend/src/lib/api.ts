@@ -141,6 +141,12 @@ export interface ComponentProgress {
   bytesTotal: number;
 }
 
+export interface ShellIntegrationStatus {
+  supported: boolean;
+  installed: boolean;
+  detail?: string;
+}
+
 export interface Settings {
   concurrency: number;
   outputDir: string;
@@ -176,6 +182,7 @@ interface Backend {
   RemoveComponent(id: string): Promise<void>;
   Settings(): Promise<Settings>;
   SaveSettings(s: Settings): Promise<void>;
+  ShellIntegrationStatus(): Promise<ShellIntegrationStatus>;
   Platform(): Promise<{ os: string; version: string; name: string }>;
   Minimise(): Promise<void>;
   ToggleMaximise(): Promise<void>;
@@ -229,6 +236,7 @@ export const api = {
   removeComponent: (id: string) => backend().RemoveComponent(id),
   settings: () => backend().Settings(),
   saveSettings: (s: Settings) => backend().SaveSettings(s),
+  shellIntegrationStatus: () => backend().ShellIntegrationStatus(),
   platform: () => backend().Platform(),
   minimise: () => backend().Minimise(),
   toggleMaximise: () => backend().ToggleMaximise(),
