@@ -1,0 +1,45 @@
+name: Feature request
+description: Suggest a task, an option or a change to how something works.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Read `docs/KNOWN_GAPS.md` first. AI features, PDF text editing, mobile
+        and a light theme are all absent on purpose, with reasons. Arguing
+        against one of those reasons is fine; ignoring it is not.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do
+      description: >
+        Describe the situation, not the solution. What file do you have, and
+        what do you need it to become?
+      placeholder: >
+        I get expense receipts as HEIC from my phone and my company's portal
+        only accepts PDF.
+    validations:
+      required: true
+
+  - type: textarea
+    id: today
+    attributes:
+      label: How do you do it today
+      description: What tool or workaround are you using, and what is wrong with it?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you think Lathe should do
+      description: Optional. Skip it if you would rather leave the design open.
+
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope
+      options:
+        - label: This works entirely offline, with no server and no account.
+          required: true

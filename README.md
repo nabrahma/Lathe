@@ -19,7 +19,7 @@ open, drag a file in.
 
 ## What it does
 
-Thirty tasks, each a card on the home screen rather than a coordinate in a
+Twenty-seven tasks, each a card on the home screen rather than a coordinate in a
 format matrix.
 
 **PDF.** Compress, merge, split, rotate, delete pages, reorder pages, add a

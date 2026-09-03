@@ -1,0 +1,80 @@
+name: Bug report
+description: A conversion failed, produced the wrong thing, or the app misbehaved.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        If Lathe modified or deleted one of your input files, say so in the
+        first line. That is the most serious bug this project can have and it
+        gets looked at immediately.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what you got instead.
+      placeholder: |
+        I dropped a 40 page scan onto Compress PDF and chose Balanced.
+        I expected a smaller PDF. The result was the same size.
+    validations:
+      required: true
+
+  - type: input
+    id: task
+    attributes:
+      label: Which task
+      placeholder: Compress PDF
+    validations:
+      required: true
+
+  - type: textarea
+    id: file
+    attributes:
+      label: The file
+      description: >
+        Roughly what it is, how big, and where it came from. Do not upload
+        anything private. If you can reproduce it with a file you would not
+        mind sharing, attach that one instead.
+      placeholder: A 14 MB scan from a Brother flatbed, 40 pages, 300 dpi.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options:
+        - Windows
+        - macOS
+        - Linux
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Lathe version
+      description: Settings, at the bottom. Or the tag you built from.
+      placeholder: 1.0.0
+    validations:
+      required: true
+
+  - type: textarea
+    id: details
+    attributes:
+      label: Error details
+      description: >
+        If Lathe showed an error, it has a Copy details button. Paste that
+        here. It is pasted as text, so no formatting is needed.
+      render: text
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: My original file is intact, or I have said above that it is not.
+          required: true
+        - label: I checked docs/KNOWN_GAPS.md and this is not listed there.
+          required: true
