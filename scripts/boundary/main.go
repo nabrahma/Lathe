@@ -18,7 +18,9 @@ import (
 var (
 	wailsAllowed = []string{"internal/app", "."}
 
-	networkAllowed = []string{"internal/deps", "internal/update", "scripts/boundary"}
+	// test/isolation is permitted because it blocks the network in order to
+	// prove nothing uses it.
+	networkAllowed = []string{"internal/deps", "internal/update", "scripts/boundary", "test/isolation"}
 
 	networkPrefixes = []string{
 		"net", "net/http", "net/url", "net/rpc", "net/smtp",
