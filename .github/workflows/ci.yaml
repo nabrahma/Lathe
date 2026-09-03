@@ -101,7 +101,14 @@ jobs:
         run: go install github.com/wailsapp/wails/v2/cmd/wails@v2.15.0
       - name: wails doctor
         run: wails doctor || true
-      - run: wails build -trimpath -skipbindings
+      - name: build
+        shell: bash
+        run: |
+          # See the note in release.yaml: 4.0 is the Wails default, 4.1 is
+          # what current distributions actually ship.
+          tags=""
+          [ "$RUNNER_OS" = Linux ] && tags="-tags webkit2_41"
+          wails build -trimpath -skipbindings $tags
         env:
           CGO_ENABLED: "1"
       - name: installer size budget
@@ -128,4 +135,4 @@ jobs:
         run: bash scripts/linux-deps.sh
       - name: build core
         shell: bash
-        run: go build ./... && go test ./internal/...
+        run: go build -tags webkit2_41 ./... && go test ./internal/...

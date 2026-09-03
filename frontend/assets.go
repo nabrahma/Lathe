@@ -8,7 +8,9 @@ package frontend
 import "embed"
 
 // Assets is the compiled interface. Run "npm run build" in this directory, or
-// let Wails do it, before building the desktop binary.
+// let Wails do it, before building the desktop binary. dist/.gitkeep is
+// committed so that "go build ./..." works in a fresh checkout, where the
+// interface has not been built yet.
 //
 //go:embed all:dist
 var Assets embed.FS
