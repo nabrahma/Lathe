@@ -47,9 +47,15 @@ linters:
       - path: internal/cli/
         linters: [errcheck]
         source: fmt\.Fprint
-      # The corpus generator wants reproducible test data, not entropy.
+      # The corpus and demo generators want reproducible files, not entropy.
       - path: scripts/gencorpus/
         linters: [gosec]
+      - path: scripts/demofiles/
+        linters: [gosec]
+      # Opening and writing the path the user chose is the product, and the
+      # paths are sanitised where they can be. G703 flags the act itself.
+      - linters: [gosec]
+        text: "G703"
 
 formatters:
   enable:

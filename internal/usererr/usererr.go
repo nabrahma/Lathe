@@ -13,7 +13,7 @@ import (
 )
 
 // Code identifies a failure class. It is what the UI switches on to decide
-// which follow-up control to render — a password field, a retry button.
+// which follow-up control to render: a password field, a retry button.
 type Code string
 
 // The failure classes Lathe recognises.

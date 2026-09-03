@@ -35,7 +35,7 @@ i18n.Missing("hi")   // the ids not yet covered
 ```
 
 The English catalogue in `i18n.go` is the source of truth, and every id is
-dotted by where it appears — `task.choose`, `error.retry` — so you have some
+dotted by where it appears (`task.choose`, `error.retry`), so you have some
 context even without the app open in front of you.
 
 ## What to watch for
@@ -57,7 +57,7 @@ language. They are the strings most likely to be read by someone already
 frustrated, and the one place a literal translation of a technical phrase does
 real harm. If English says "This file is open in another program. Close it and
 try again", the translation should be the sentence a person in that language
-would actually say — not a word-for-word mapping.
+would actually say, not a word-for-word mapping.
 
 **Say what the user gets.** Task descriptions are fragments without a full
 stop, describing the outcome rather than the mechanism: "Make a PDF smaller",
@@ -70,9 +70,9 @@ Bengali, Tamil, Arabic or CJK coverage, so those fall through to a fallback
 stack declared in `frontend/src/styles/tokens.css` as `--fallback-script`.
 
 If your script renders poorly, the fix belongs in that token rather than in
-your catalogue. Add the font your platform actually ships — `Nirmala UI` on
-Windows and `Noto Sans <Script>` elsewhere are usually the right answers — and
-say so in the pull request.
+your catalogue. Add the font your platform actually ships, where `Nirmala UI`
+on Windows and `Noto Sans <Script>` elsewhere are usually the right answers,
+and say so in the pull request.
 
 Right-to-left layout is not implemented yet. A catalogue for an RTL language is
 still welcome and will read correctly; the layout mirroring is tracked in
@@ -85,6 +85,6 @@ go test ./internal/i18n/
 ```
 
 Then run the app with the language selected and look at the four screens. The
-strings that break layouts are always the long ones — German compounds and
-Tamil verb forms in particular — and no test catches a button whose label has
+strings that break layouts are always the long ones, German compounds and
+Tamil verb forms in particular, and no test catches a button whose label has
 outgrown it.

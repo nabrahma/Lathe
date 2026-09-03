@@ -115,7 +115,7 @@ func Missing(code string) []string {
 // without the app in front of them still has some context.
 var english = Catalog{
 	"app.name":    "Lathe",
-	"app.tagline": "Convert, compress and read files — offline.",
+	"app.tagline": "Convert, compress and read files. Offline.",
 
 	"home.search":         "What do you want to do?",
 	"home.filtered":       "Showing what you can do with it",

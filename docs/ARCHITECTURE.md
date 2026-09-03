@@ -108,5 +108,5 @@ app. It is configurable, and the default is deliberately conservative.
 
 A new task is one registry entry plus a case in one engine. A new engine is one
 type satisfying `engine.Engine` plus a line in `internal/engines`. Neither
-requires touching the interface, the CLI, the queue or the pipeline — see
+requires touching the interface, the CLI, the queue or the pipeline. See
 [ADDING_A_TASK.md](ADDING_A_TASK.md).

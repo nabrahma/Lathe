@@ -11,7 +11,7 @@ import (
 	"github.com/nabrahma/lathe/internal/version"
 )
 
-// buildMenu returns the application menu. macOS gets a real one — a missing
+// buildMenu returns the application menu. macOS gets a real one, because a missing
 // Edit menu is the first thing a Mac user notices, and Cut/Copy/Paste stop
 // working without it. Elsewhere the menu bar would be an unfamiliar addition,
 // so there is none.

@@ -1,7 +1,7 @@
 // Package pipeline runs one job from validated input to published output.
 //
 // The stages are fixed and always run in order: validate, ensure components,
-// plan, execute, verify, write. Verification is not optional — a truncated
+// plan, execute, verify, write. Verification is not optional: a truncated
 // engine output has a plausible size and is broken, and catching that here is
 // the difference between an honest error and a corrupt file in someone's
 // Documents folder.

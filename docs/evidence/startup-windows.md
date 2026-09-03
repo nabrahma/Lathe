@@ -1,4 +1,4 @@
-# Startup and memory — Windows
+# Startup and memory on Windows
 
 Measured on the machine described below, five cold launches of a release build,
 timing from process start to the window handle existing. Reproduce with the

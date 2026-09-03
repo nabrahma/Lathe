@@ -2,7 +2,7 @@
 # Signs and notarises the macOS build.
 #
 # An unsigned app on macOS shows "cannot be opened because the developer cannot
-# be verified", and a large share of people stop there — not because they can't
+# be verified", and a large share of people stop there. Not because they cannot
 # work around it, but because a file converter is not worth the friction.
 #
 # Skips cleanly when credentials are absent, so a fork's CI is not broken by

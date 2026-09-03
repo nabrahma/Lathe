@@ -4,7 +4,7 @@
 // compiled in and always available, while video and Office support announce
 // themselves honestly and download once. This package is one of only two
 // allowed to touch the network, and the only one that writes executables to a
-// user's machine — so every download is checksum-verified against a manifest
+// user's machine, so every download is checksum-verified against a manifest
 // compiled into the binary, and a mismatch is deleted rather than used.
 package deps
 
@@ -250,14 +250,26 @@ func (m *manager) Status(ctx context.Context) []Status {
 		}
 
 		p := m.probeComponent(ctx, c)
-		s.Usable, s.Path, s.Problem = p.usable, p.path, p.err
+		s.Usable, s.Path = p.usable, p.path
 		if p.usable {
 			// A system component found on PATH is installed, even though
 			// Lathe did not put it there.
 			s.Installed = true
 		}
-		if !s.Installed && c.SystemOnly {
+
+		// Problem is read by a person, so it carries advice or nothing at all.
+		// The probe's own error is engineer-facing and never shown: "component
+		// is not installed" beside a Download button tells the user nothing
+		// they cannot already see.
+		switch {
+		case p.usable:
+			s.Problem = ""
+		case c.SystemOnly:
 			s.Problem = c.Hint()
+		case s.Installed:
+			s.Problem = "This component is installed but does not run. Removing and downloading it again usually fixes it."
+		default:
+			s.Problem = ""
 		}
 		out = append(out, s)
 	}

@@ -42,8 +42,8 @@ export function SettingsScreen({ onBack }: SettingsProps) {
     setPrefs(next);
     setProblem("");
 
-    // Saving can fail — the shell entry actually touches the system — so the
-    // toggle is reconciled with what the backend reports afterwards rather
+    // Saving can fail, because the shell entry actually touches the system, so
+    // the toggle is reconciled with what the backend reports afterwards rather
     // than left showing a change that did not happen.
     void api
       .saveSettings(next)

@@ -9,8 +9,8 @@ import type { FileInfo, Job, Task } from "./lib/api";
 import { api, onEvent } from "./lib/api";
 
 /*
- * Four screens is the whole application: home, task, progress, result — with
- * progress and result sharing one. Settings is reachable but off the path.
+ * Four screens is the whole application: home, task, progress and result,
+ * with progress and result sharing one. Settings is reachable but off the path.
  */
 
 type Screen =
@@ -26,6 +26,9 @@ export function App() {
   const [platform, setPlatform] = useState("");
   const [quitting, setQuitting] = useState(0);
   const [startupError, setStartupError] = useState("");
+  // Files the user has offered, however they arrived: a drag onto the window,
+  // or launching the app with a file from the context menu.
+  const [incoming, setIncoming] = useState<FileInfo[]>([]);
 
   useEffect(() => {
     void api
@@ -33,6 +36,24 @@ export function App() {
       .then(setTasks)
       .catch((err: unknown) => setStartupError(String(err)));
     void api.platform().then((p) => setPlatform(p.os));
+
+    // A cold launch from "Convert with Lathe" arrives as a command-line
+    // argument, and lands on the same filtered home screen as a drag.
+    void api.pendingFiles().then((files) => {
+      if (files.length > 0) setIncoming(files);
+    });
+  }, []);
+
+  // Files dropped onto the window from the operating system.
+  useEffect(() => {
+    const runtime = window.runtime;
+    if (!runtime) return;
+
+    return runtime.EventsOn("wails:file-drop", (...data: unknown[]) => {
+      const paths = data.find(Array.isArray) as string[] | undefined;
+      if (!paths?.length) return;
+      void api.inspect(paths).then(setIncoming);
+    });
   }, []);
 
   // Job updates arrive as events rather than being polled, so the interface
@@ -55,12 +76,14 @@ export function App() {
     [],
   );
 
-  // Files arriving from the OS while a task screen is open, or from a second
-  // launch via the right-click menu.
+  // A second launch, which happens when someone uses the context menu while a
+  // window is already open.
   useEffect(
     () =>
       onEvent<FileInfo[]>("files:opened", (files) => {
-        if (files.length > 0) setScreen({ name: "home" });
+        if (files.length === 0) return;
+        setIncoming(files);
+        setScreen({ name: "home" });
       }),
     [],
   );
@@ -117,6 +140,8 @@ export function App() {
       {screen.name === "home" && (
         <Home
           tasks={tasks}
+          incoming={incoming}
+          onClearIncoming={() => setIncoming([])}
           onPick={(task, files) => setScreen({ name: "task", task, files })}
           onSettings={() => setScreen({ name: "settings" })}
         />

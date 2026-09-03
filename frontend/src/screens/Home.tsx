@@ -1,20 +1,27 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Icon } from "../components/Icon";
-import type { Category, FileInfo, Task } from "../lib/api";
-import { api } from "../lib/api";
+import type { FileInfo, Task } from "../lib/api";
+import { humanBytes } from "../lib/api";
 
 /*
  * Home.
  *
  * Dragging a file anywhere on this screen filters the grid to the tasks that
  * accept it. Drop a HEIC and see Convert, Compress, Resize, Extract text,
- * Images to PDF — which removes the need to understand the categories at all,
+ * Images to PDF, which removes the need to understand the categories at all
  * and is the best interaction in the product.
+ *
+ * The dropped files live in App rather than here, because the same filtered
+ * state is reached three ways: a drag, the file dialog, and launching the app
+ * with a file from the context menu.
  */
 
 interface HomeProps {
   tasks: Task[];
+  /** Files the user has offered, from a drag or from the command line. */
+  incoming: FileInfo[];
+  onClearIncoming: () => void;
   onPick: (task: Task, files: FileInfo[]) => void;
   onSettings: () => void;
 }
@@ -27,12 +34,9 @@ const groupTitles: Record<string, string> = {
   media: "Video and audio",
 };
 
-export function Home({ tasks, onPick, onSettings }: HomeProps) {
+export function Home({ tasks, incoming, onClearIncoming, onPick, onSettings }: HomeProps) {
   const [query, setQuery] = useState("");
-  const [dragging, setDragging] = useState<Category | null>(null);
-  const [pending, setPending] = useState<FileInfo[]>([]);
   const searchRef = useRef<HTMLInputElement>(null);
-  const depth = useRef(0);
 
   // Cmd+K on macOS, Ctrl+K elsewhere, resolved once rather than hardcoded.
   useEffect(() => {
@@ -48,28 +52,12 @@ export function Home({ tasks, onPick, onSettings }: HomeProps) {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  // Files dropped on the window, from the OS or from a second launch.
-  useEffect(() => {
-    const runtime = window.runtime;
-    if (!runtime) return;
-
-    const off = runtime.EventsOn("wails:file-drop", (...data: unknown[]) => {
-      const paths = data.find(Array.isArray) as string[] | undefined;
-      if (!paths?.length) return;
-
-      depth.current = 0;
-      void api.inspect(paths).then((files) => {
-        setPending(files);
-        setDragging(files[0]?.category ?? null);
-      });
-    });
-    return off;
-  }, []);
+  const filterCategory = incoming[0]?.category ?? null;
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
     return tasks.filter((t) => {
-      if (dragging && !t.accepts.includes(dragging)) return false;
+      if (filterCategory && !t.accepts.includes(filterCategory)) return false;
       if (!q) return true;
       return (
         t.name.toLowerCase().includes(q) ||
@@ -77,7 +65,7 @@ export function Home({ tasks, onPick, onSettings }: HomeProps) {
         t.id.includes(q)
       );
     });
-  }, [tasks, query, dragging]);
+  }, [tasks, query, filterCategory]);
 
   const grouped = useMemo(() => {
     const out = new Map<string, Task[]>();
@@ -89,26 +77,8 @@ export function Home({ tasks, onPick, onSettings }: HomeProps) {
     return out;
   }, [visible]);
 
-  const clearFilter = () => {
-    setDragging(null);
-    setPending([]);
-  };
-
   return (
-    <div
-      className="scroll fade-in"
-      onDragOver={(e) => {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = "copy";
-      }}
-      onDragEnter={(e) => {
-        e.preventDefault();
-        depth.current += 1;
-      }}
-      onDragLeave={() => {
-        depth.current -= 1;
-      }}
-    >
+    <div className="scroll fade-in">
       <div className="screen">
         <div className="row">
           <div className="search" style={{ flex: 1 }}>
@@ -135,24 +105,25 @@ export function Home({ tasks, onPick, onSettings }: HomeProps) {
           </button>
         </div>
 
-        {dragging && (
+        {incoming.length > 0 && (
           <div className="row panel" style={{ padding: "12px 16px" }}>
             <Icon name="file" size={16} />
-            <span className="t-data">
-              {pending.length === 1
-                ? pending[0].name
-                : `${pending.length} files`}
+            <span className="filename">
+              {incoming.length === 1 ? incoming[0].name : `${incoming.length} files`}
             </span>
-            {pending[0]?.mismatch && (
+            <span className="filemeta">
+              {humanBytes(incoming.reduce((total, f) => total + f.sizeBytes, 0))}
+            </span>
+            {incoming[0]?.mismatch && (
               <span className="file-warn">
-                This is actually a {pending[0].mismatch.toUpperCase()} file.
+                This is actually a {incoming[0].mismatch.toUpperCase()} file.
               </span>
             )}
             <span className="spacer" />
             <span className="t-data" style={{ color: "var(--fg-mid)" }}>
               Showing what you can do with it
             </span>
-            <button type="button" className="btn btn-ghost" onClick={clearFilter}>
+            <button type="button" className="btn btn-ghost" onClick={onClearIncoming}>
               Clear
             </button>
           </div>
@@ -167,7 +138,7 @@ export function Home({ tasks, onPick, onSettings }: HomeProps) {
             <h2 className="section-label">{groupTitles[category] ?? category}</h2>
             <div className="task-grid">
               {list.map((t) => (
-                <TaskCard key={t.id} task={t} onPick={() => onPick(t, pending)} />
+                <TaskCard key={t.id} task={t} onPick={() => onPick(t, incoming)} />
               ))}
             </div>
           </section>

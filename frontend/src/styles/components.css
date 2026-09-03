@@ -583,12 +583,22 @@
 
 /* ------------------------------------------------------------------ notes */
 
+/*
+ * A note is something worth knowing, not something wrong. It gets a rule and a
+ * quieter colour; --warn stays reserved for an actual caveat, so that when it
+ * does appear it still means something.
+ */
 .note {
   font: 400 0.875rem / 1.5 var(--sans);
-  color: var(--warn);
+  color: var(--fg-mid);
   max-width: 68ch;
-  border-left: 2px solid var(--warn);
+  border-left: 2px solid var(--line);
   padding-left: var(--gap-3);
+}
+
+.note-caveat {
+  color: var(--warn);
+  border-left-color: var(--warn);
 }
 
 /* ----------------------------------------------------------------- dialog */

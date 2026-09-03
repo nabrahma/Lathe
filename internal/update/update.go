@@ -94,8 +94,8 @@ func Check(ctx context.Context) (*Release, error) {
 	return &Release{Version: latest, URL: payload.HTMLURL, Notes: payload.Body}, nil
 }
 
-// IsNewer compares two semantic versions. An unparseable running version — a
-// development build, say — is never treated as out of date, so a developer is
+// IsNewer compares two semantic versions. An unparseable running version, a
+// development build for instance, is never treated as out of date, so a developer is
 // not nagged about their own working copy.
 func IsNewer(candidate, current string) bool {
 	a, okA := parse(candidate)

@@ -95,8 +95,8 @@ func extractPages(req engine.Request, progress func(engine.Progress)) (*engine.R
 
 ## 4. Test it
 
-Add a case to `test/matrix/matrix_test.go` — the coverage guard fails the build
-without one. Add both shapes:
+Add a case to `test/matrix/matrix_test.go`, because the coverage guard fails
+the build without one. Add both shapes:
 
 ```go
 {"extract a range", "pdf.extract-pages", []string{pdf("five-page.pdf")},
@@ -127,8 +127,8 @@ go test ./test/matrix/ -run TestConversionMatrix -v
 
 ## Adding a whole engine
 
-Rarer, but no harder. Implement `engine.Engine` — `ID`, `Available`,
-`Execute` — in `internal/engine/<name>engine`, and add it to
+Rarer, but no harder. Implement the three methods of `engine.Engine` (`ID`,
+`Available` and `Execute`) in `internal/engine/<name>engine`, and add it to
 `internal/engines/engines.go`.
 
 Two rules apply to any engine that shells out:
@@ -141,5 +141,5 @@ Two rules apply to any engine that shells out:
    code or an uppercase message reaches a user.
 
 If the engine needs software Lathe does not ship, add a `Component` to
-`internal/deps/manifest.go` — with a real SHA-256, since the installer refuses
+`internal/deps/manifest.go`, with a real SHA-256, since the installer refuses
 anything else. See [BUNDLING.md](BUNDLING.md).

@@ -2,7 +2,7 @@
 //
 // Modifying someone's input file is the one unforgivable bug: they lose a
 // document and never trust the tool again. That guarantee is enforced
-// structurally here rather than left to intention — inputs are opened
+// structurally here rather than left to intention: inputs are opened
 // read-only through a recording filesystem, hashed before and after, and the
 // process is killed at randomised points mid-job to prove a crash leaves both
 // the input and the destination untouched.

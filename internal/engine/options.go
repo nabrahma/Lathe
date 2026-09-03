@@ -9,8 +9,8 @@ import (
 
 // Options is a task's option values with typed accessors.
 //
-// Values arrive from three places — task defaults, the CLI as strings, and the
-// UI as JSON, where every number is a float64 — so every accessor coerces
+// Values arrive from three places (task defaults, the CLI as strings, and the
+// UI as JSON, where every number is a float64) so every accessor coerces
 // rather than type-asserting.
 type Options map[string]any
 
@@ -145,7 +145,9 @@ func ParsePages(spec string, total int) (PageSet, error) {
 		return nil, fmt.Errorf("the document has no pages")
 	}
 
-	spec = strings.NewReplacer("–", "-", "—", "-", " to ", "-").Replace(spec)
+	// A range pasted out of a document often carries an en or em dash rather
+	// than a hyphen, and refusing it would be pedantry.
+	spec = strings.NewReplacer("\u2013", "-", "\u2014", "-", " to ", "-").Replace(spec)
 	seen := make(map[int]bool)
 
 	for _, part := range strings.FieldsFunc(spec, func(r rune) bool { return r == ',' || r == ';' }) {

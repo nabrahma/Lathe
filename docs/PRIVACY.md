@@ -3,7 +3,7 @@
 ## The guarantee
 
 Lathe never uploads your files. There is no server, no account, no sync and no
-telemetry — not anonymous, not aggregated, not opt-out.
+telemetry. Not anonymous, not aggregated, not opt-out.
 
 You can verify this in ten seconds without reading any code: disconnect from
 the internet and use the app. Everything except a one-time component download
@@ -15,7 +15,7 @@ Two things, both of which you start deliberately.
 
 ### 1. Downloading a component
 
-When a task needs software Lathe does not ship — currently only FFmpeg — it
+When a task needs software Lathe does not ship, currently only FFmpeg, it
 tells you what it needs and how large the download is, and waits for you to
 agree. Nothing downloads in the background and nothing downloads silently.
 
@@ -32,7 +32,7 @@ Off unless you turn it on, and you are asked once.
 
 When on, Lathe asks the GitHub releases API whether a newer version exists. The
 request sends the app's own version number and nothing else, and Lathe never
-downloads or installs an update by itself — it only tells you one exists.
+downloads or installs an update by itself. It only tells you one exists.
 
 Turn it off and Lathe makes no network request at all, ever, except a component
 download you explicitly start.
@@ -73,7 +73,7 @@ your files.
 
 Never modified, under any circumstance, including a crash. Every result is
 written to a temporary file beside its destination and atomically renamed into
-place, and an existing file is never overwritten — `report.pdf` becomes
+place, and an existing file is never overwritten: `report.pdf` becomes
 `report (1).pdf`.
 
 This is enforced by [`test/integrity`](../test/integrity), which hashes every
@@ -87,5 +87,6 @@ survive it.
 to supply the correct password. Lathe never attempts to crack, brute-force or
 bypass encryption, and there is no code in the repository that could.
 
-It is a legitimate feature — people encrypt their own documents and later want
-them plain — but the boundary is worth stating rather than leaving ambiguous.
+It is a legitimate feature, since people encrypt their own documents and later
+want them plain, but the boundary is worth stating rather than leaving
+ambiguous.

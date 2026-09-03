@@ -220,7 +220,7 @@ func (e *Engine) run(ctx context.Context, bin string, args []string,
 		}
 		progress(engine.Progress{
 			Fraction: frac,
-			Stage:    fmt.Sprintf("Converting %s — %s of %s", label, short(at), short(total)),
+			Stage:    fmt.Sprintf("Converting %s, %s of %s", label, short(at), short(total)),
 		})
 	})
 	return err

@@ -223,7 +223,7 @@ func UniquePath(dir, base, ext string) string {
 }
 
 // CheckWritable reports, before a job starts, whether results can actually be
-// written to dir — so the failure arrives up front rather than after a
+// written to dir, so the failure arrives up front rather than after a
 // five-minute conversion.
 func CheckWritable(dir string) error {
 	info, err := os.Stat(dir)
