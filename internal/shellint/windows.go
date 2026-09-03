@@ -3,8 +3,10 @@
 package shellint
 
 import (
+	"errors"
 	"fmt"
 	"strings"
+	"syscall"
 
 	"golang.org/x/sys/windows/registry"
 )
@@ -65,7 +67,12 @@ func (w *windowsIntegrator) Remove() error {
 	// The command subkey has to go first: a key with children cannot be
 	// deleted.
 	_ = registry.DeleteKey(registry.CURRENT_USER, commandKey)
-	if err := registry.DeleteKey(registry.CURRENT_USER, shellKey); err != nil {
+
+	// Removing an entry that is not there is a no-op, not a failure. The app
+	// calls this whenever the setting is turned off, whatever the real state,
+	// and an uninstall must not fail because it already ran once.
+	if err := registry.DeleteKey(registry.CURRENT_USER, shellKey); err != nil &&
+		!errors.Is(err, registry.ErrNotExist) && !errors.Is(err, syscall.ERROR_FILE_NOT_FOUND) {
 		return fmt.Errorf("remove the menu entry: %w", err)
 	}
 	return nil
