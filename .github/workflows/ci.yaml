@@ -140,4 +140,8 @@ jobs:
         shell: bash
         env:
           GOTOOLCHAIN: auto
+          # Fedora's Go ships GOSUMDB=off, and a toolchain download cannot be
+          # verified without it, so the build is refused rather than fetched.
+          GOSUMDB: sum.golang.org
+          GOPROXY: https://proxy.golang.org,direct
         run: go build -tags webkit2_41 ./... && go test ./internal/...

@@ -315,6 +315,14 @@ func TestOutputsNeverOverwriteAnExistingFile(t *testing.T) {
 }
 
 func TestTheWorkspaceIsRemovedAfterEveryRun(t *testing.T) {
+	// Workspaces live under os.TempDir, which every package's test binary
+	// shares. go test runs packages in parallel, so counting that directory
+	// without a private temp root measures other packages' work as a leak.
+	private := t.TempDir()
+	for _, k := range []string{"TMPDIR", "TMP", "TEMP"} {
+		t.Setenv(k, private)
+	}
+
 	in := writePDF(t, t.TempDir(), "input.pdf")
 	before := countTempWorkspaces(t)
 

@@ -12,5 +12,8 @@ func freeSpace(dir string) (int64, error) {
 	if err := unix.Statfs(dir, &stat); err != nil {
 		return 0, err
 	}
-	return int64(stat.Bavail) * int64(stat.Bsize), nil
+	// Bsize is int64 on Linux and uint32 on macOS, so this conversion is
+	// redundant on the platform the linter runs on and load-bearing on the
+	// other.
+	return int64(stat.Bavail) * int64(stat.Bsize), nil //nolint:unconvert // keeps macOS compiling
 }
