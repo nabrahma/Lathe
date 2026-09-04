@@ -514,11 +514,15 @@
   align-items: center;
   gap: var(--gap-3);
   padding: var(--gap-3) var(--gap-4);
-  border-bottom: var(--hair) solid var(--line-soft);
+  /* The border is present on every side at rest and only coloured on the one
+     that shows. Reordering then changes a colour rather than a box, so a row
+     cannot shift under the pointer that is dragging it. */
+  border: var(--hair) solid transparent;
+  border-bottom-color: var(--line-soft);
 }
 
 .file-row:last-child {
-  border-bottom: none;
+  border-bottom-color: transparent;
 }
 
 .filename {
@@ -574,18 +578,21 @@
   cursor: grabbing;
 }
 
+/* Lifted off the list while it is being carried, so the row being moved is
+   never confused with the ones it is moving past. A step up in background and
+   a hairline around it, which is how this design system spells elevation:
+   there are no shadows anywhere in it, and check-bundle.mjs enforces that. */
 .file-row.dragging {
-  background: var(--ink-200);
+  background: var(--ink-300);
   color: var(--fg);
-  /* Lifted off the list while it is being carried, so the row being moved is
-     never confused with the ones it is moving past. */
-  box-shadow: 0 0 0 var(--hair) var(--hi);
+  border-color: var(--hi);
   position: relative;
   z-index: 1;
 }
 
+/* Where it would land, drawn on the edge it would be inserted above. */
 .file-row.drop-target {
-  box-shadow: inset 0 2px 0 var(--hi);
+  border-top-color: var(--hi);
 }
 
 /* -------------------------------------------------------------- tooltips */
