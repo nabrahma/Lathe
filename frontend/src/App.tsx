@@ -165,11 +165,15 @@ export function App() {
       {screen.name === "job" && jobs[screen.jobId] && (
         <Progress
           job={jobs[screen.jobId]}
+          task={screen.task}
+          tasks={tasks}
           onCancel={() => void api.cancel(screen.jobId)}
-          onOpen={(p) => void api.open(p)}
-          onReveal={(p) => void api.reveal(p)}
+          onOpen={(p) => api.open(p)}
+          onReveal={(p) => api.reveal(p)}
           onAgain={() => setScreen({ name: "home" })}
+          onHome={() => setScreen({ name: "home" })}
           onRetry={() => setScreen({ name: "task", task: screen.task, files: [] })}
+          onPickTask={(task, files) => setScreen({ name: "task", task, files })}
         />
       )}
 

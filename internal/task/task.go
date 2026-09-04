@@ -101,6 +101,17 @@ type Option struct {
 
 	// Placeholder is shown in an empty Text or Password field.
 	Placeholder string `json:"placeholder,omitempty"`
+
+	// Help is one sentence saying what the control actually does, shown when
+	// the pointer rests on it.
+	//
+	// Most controls do not have one and should not. It is for labels that name
+	// a concept rather than an effect, which is where jargon hides: "Add a
+	// bookmark per file" is exact and tells someone who has never opened a PDF
+	// outline nothing at all. A label that already says what happens, such as
+	// "Read scanned pages too", is finished, and explaining it again is noise
+	// that trains people to ignore the explanations that matter.
+	Help string `json:"help,omitempty"`
 }
 
 // MaxPrimaryOptions caps how many controls a task screen may show before the
@@ -132,6 +143,23 @@ type Task struct {
 	// CLIName is the subcommand for lathe-cli. Empty means ID with dots
 	// replaced by dashes.
 	CLIName string `json:"cliName,omitempty"`
+
+	// OrderMatters marks the tasks that build one document out of several
+	// files, where the order they were given in is the order they appear in
+	// the result. Those are the only ones where rearranging the list changes
+	// anything, so they are the only ones offered handles to do it with.
+	OrderMatters bool `json:"orderMatters"`
+
+	// ShrinksFile marks the tasks whose whole purpose is to make a file
+	// smaller, which are the only ones where a before-and-after size is worth
+	// reporting.
+	//
+	// Everywhere else the comparison is noise at best and a lie at worst.
+	// Merging two PDFs of 171 kB into one of 131 kB is not a 24 percent saving
+	// on anything the user asked for; it is what happens when two documents
+	// stop repeating each other's fonts, and reporting it as a saving invites
+	// the reader to wonder what was thrown away.
+	ShrinksFile bool `json:"shrinksFile"`
 }
 
 // Command is the CLI subcommand name for the task.

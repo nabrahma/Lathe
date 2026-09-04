@@ -34,10 +34,37 @@ one for the whole page. On a page with a hard-edged shadow across it, the kind
 cast by your own hand or by the gutter of a bound book, that is the difference
 between reading 37 percent of the text and 99 percent.
 
+**Components install themselves.** Anything Lathe needs beyond PDF and image
+work is a button rather than an errand: it downloads the exact file it holds a
+checksum for and sets it up, instead of sending you to a website to find the
+right installer yourself. On Windows that includes Tesseract and Ghostscript,
+which publish a setup program and nothing portable; Lathe runs it into its own
+folder, so removing the component later is Lathe deleting its own directory.
+Windows asks permission first, because both installers request it, and Lathe
+says so beside the button rather than letting the prompt arrive unexplained. On
+macOS and Linux those two come from a package manager, which needs a root
+password Lathe has no business asking for, so it says exactly what to run.
+
 **Optional components, downloaded once.** The base install is around 18 MB and
 handles PDF and images with no external binary at all. Video, OCR and Office
 formats each pull a component the first time you ask for them, verified against
 a pinned SHA-256 and then working offline forever.
+
+**A result that says what happened.** A finished job reports what it actually
+did rather than a number that happens to be true. A size comparison belongs to
+the tasks that exist to shrink a file; merging two PDFs says they were
+combined, because the bytes it saved are two documents no longer repeating each
+other's fonts and not a saving anyone asked for. Open and Show in folder hand
+the file to the application and the file manager this computer already uses.
+Underneath the result are the tasks that accept what you just made, with it
+already loaded.
+
+**Files you combine stay in the order you put them.** Merge PDFs and Images to
+PDF take the list as given, so the list can be rearranged by hand, by dragging
+a row or by moving it with the arrow keys. The handles appear only on those
+two, because anywhere else they would rearrange something that makes no
+difference. Merging can also add a contents entry for each file it joined, so a
+reader can jump to where each one started.
 
 **Verified atomic output.** Every result is written to a sibling temp file,
 flushed and renamed into place, so a crash or a power loss leaves either a

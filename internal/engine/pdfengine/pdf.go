@@ -232,8 +232,16 @@ func copyFile(src, dst string) error {
 func merge(req engine.Request, progress func(engine.Progress)) (*engine.Response, error) {
 	progress(engine.Progress{Fraction: -1, Stage: fmt.Sprintf("Merging %d files", len(req.Inputs))})
 
+	c := conf(req.Options.String("password", ""))
+	// One bookmark per source file, so the merged document has a contents list
+	// naming where each original started. Without this the reader gets one
+	// long PDF with no way back to "the third file I added".
+	c.CreateBookmarks = req.Options.Bool("bookmarks", true)
+
 	out := req.Workspace.Path("merged.pdf")
-	if err := api.MergeCreateFile(req.Inputs, out, false, conf(req.Options.String("password", ""))); err != nil {
+	// The order of req.Inputs is the order of the result, which is why the
+	// task screen lets that list be rearranged.
+	if err := api.MergeCreateFile(req.Inputs, out, false, c); err != nil {
 		return nil, err
 	}
 	return &engine.Response{Outputs: []string{out}}, nil

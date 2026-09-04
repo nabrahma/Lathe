@@ -541,6 +541,76 @@
   color: var(--warn);
 }
 
+/* Amber is for something worth noticing; this is for something that did not
+   work. A file that has been moved away is a failure, not a caution, and it
+   reads as one in the same red the app uses everywhere else for a stop. */
+.file-error {
+  font: 400 0.8125rem / 1.4 var(--sans);
+  color: var(--stop);
+}
+
+/* ------------------------------------------------------------ reordering */
+
+/* The handle is the only part that starts a drag, so the rest of the row can
+   still be selected and the close button still pressed. */
+.grip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  border: none;
+  background: none;
+  color: var(--fg-low);
+  cursor: grab;
+  touch-action: none;
+}
+
+.grip:hover,
+.grip:focus-visible {
+  color: var(--hi);
+}
+
+.grip:active {
+  cursor: grabbing;
+}
+
+.file-row.dragging {
+  background: var(--ink-200);
+  color: var(--fg);
+  /* Lifted off the list while it is being carried, so the row being moved is
+     never confused with the ones it is moving past. */
+  box-shadow: 0 0 0 var(--hair) var(--hi);
+  position: relative;
+  z-index: 1;
+}
+
+.file-row.drop-target {
+  box-shadow: inset 0 2px 0 var(--hi);
+}
+
+/* -------------------------------------------------------------- tooltips */
+
+.tip {
+  position: fixed;
+  z-index: 60;
+  max-width: 22rem;
+  padding: var(--gap-2) var(--gap-3);
+  background: var(--ink-200);
+  border: var(--hair) solid var(--line);
+  color: var(--fg-mid);
+  font: 400 0.8125rem / 1.45 var(--sans);
+  /* The pointer is already somewhere else by the time this is read, and a
+     tooltip that can be hovered gets in the way of the control it explains. */
+  pointer-events: none;
+}
+
+/* Generates no box of its own, so wrapping a control to explain it cannot
+   disturb the layout the control sits in. Cursor still inherits. */
+.has-help {
+  display: contents;
+  cursor: help;
+}
+
 /* ---------------------------------------------------------------- options */
 
 .option {

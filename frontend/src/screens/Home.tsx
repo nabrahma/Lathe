@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Icon } from "../components/Icon";
-import { PixelIcon } from "../components/PixelIcon";
+import { TaskCard } from "../components/TaskCard";
 import type { FileInfo, Task } from "../lib/api";
 import { humanBytes } from "../lib/api";
 
@@ -173,37 +173,5 @@ export function Home({ tasks, incoming, onClearIncoming, onPick, onSettings }: H
         ))}
       </div>
     </div>
-  );
-}
-
-function TaskCard({
-  task,
-  index,
-  onPick,
-}: {
-  task: Task;
-  index: number;
-  onPick: () => void;
-}) {
-  return (
-    <button type="button" className="task-card" onClick={onPick}>
-      <span className="task-plate">
-        <span className="task-icon">
-          <PixelIcon name={task.icon} size={40} />
-        </span>
-        {/* Honest before the click, not after. */}
-        {!task.available && task.downloadMB > 0 ? (
-          <span className="badge badge-warn">+{task.downloadMB} MB</span>
-        ) : !task.available ? (
-          <span className="badge badge-warn">Needs setup</span>
-        ) : (
-          <span className="task-index">{String(index).padStart(3, "0")}</span>
-        )}
-      </span>
-      <span className="task-body">
-        <span className="task-name">{task.name}</span>
-        <span className="task-desc">{task.description}</span>
-      </span>
-    </button>
   );
 }

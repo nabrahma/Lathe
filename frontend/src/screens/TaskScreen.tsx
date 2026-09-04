@@ -1,7 +1,8 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { DropZone } from "../components/DropZone";
 import { Icon } from "../components/Icon";
+import { Tooltip } from "../components/Tooltip";
 import type { FileInfo, Task, TaskOption } from "../lib/api";
 import { api, humanBytes } from "../lib/api";
 
@@ -25,6 +26,72 @@ export function TaskScreen({ task, initialFiles, onBack, onRun }: TaskScreenProp
   const [options, setOptions] = useState<Record<string, unknown>>(() => defaultsOf(task));
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [outputDir, setOutputDir] = useState("");
+  // Which row is being carried, and which one the pointer is currently over.
+  const [dragging, setDragging] = useState<number | null>(null);
+  const [dragOver, setDragOver] = useState<number | null>(null);
+  // The state above draws the drag; these carry it, so the drop can read where
+  // it started and ended without going through a state updater.
+  const dragFrom = useRef<number | null>(null);
+  const dragTo = useRef<number | null>(null);
+
+  const beginDrag = (i: number) => {
+    dragFrom.current = i;
+    dragTo.current = i;
+    setDragging(i);
+  };
+
+  // Reordering is driven by pointer events rather than the HTML drag API on
+  // purpose. The window already listens for files dragged in from the desktop,
+  // and a native drag starting inside it muddies that; pointer events keep the
+  // two entirely separate, and they behave the same under touch.
+  const moveFile = (from: number, to: number) => {
+    setFiles((current) => {
+      if (to < 0 || to >= current.length || from === to) return current;
+      const next = current.slice();
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
+      return next;
+    });
+  };
+
+  useEffect(() => {
+    if (dragging === null) return;
+
+    const over = (e: PointerEvent) => {
+      const row = document
+        .elementsFromPoint(e.clientX, e.clientY)
+        .find((el) => el instanceof HTMLElement && el.dataset.row !== undefined);
+      if (row instanceof HTMLElement) {
+        const i = Number(row.dataset.row);
+        dragTo.current = i;
+        setDragOver(i);
+      }
+    };
+
+    // The move is made here, from refs, rather than inside a state updater.
+    // React calls updaters twice under StrictMode to catch impure ones, and a
+    // reorder performed in there would run twice and shift the row two places.
+    const drop = () => {
+      const from = dragFrom.current;
+      const to = dragTo.current;
+      dragFrom.current = null;
+      dragTo.current = null;
+      setDragging(null);
+      setDragOver(null);
+      if (from !== null && to !== null) moveFile(from, to);
+    };
+
+    window.addEventListener("pointermove", over);
+    window.addEventListener("pointerup", drop);
+    window.addEventListener("pointercancel", drop);
+    return () => {
+      window.removeEventListener("pointermove", over);
+      window.removeEventListener("pointerup", drop);
+      window.removeEventListener("pointercancel", drop);
+    };
+    // Rebound only when a drag starts or ends: moveFile is recreated every
+    // render but closes over nothing that changes within a drag.
+  }, [dragging]);
 
   const primary = task.options.filter((o) => !o.advanced);
   const advanced = task.options.filter((o) => o.advanced);
@@ -80,11 +147,21 @@ export function TaskScreen({ task, initialFiles, onBack, onRun }: TaskScreenProp
           />
         ) : (
           <div className="panel">
-            {files.map((f) => (
+            {files.map((f, i) => (
               <FileRow
                 key={f.path}
                 file={f}
+                index={i}
+                total={files.length}
                 accepted={task.accepts.includes(f.category)}
+                // Handles appear only where rearranging changes the result.
+                // On a task that treats its inputs as a set, they would be a
+                // control that does nothing.
+                reorderable={task.orderMatters && files.length > 1}
+                dragging={dragging === i}
+                dropTarget={dragOver === i && dragging !== null && dragging !== i}
+                onGrab={() => beginDrag(i)}
+                onMove={(to) => moveFile(i, to)}
                 onRemove={() => setFiles((c) => c.filter((x) => x.path !== f.path))}
               />
             ))}
@@ -196,15 +273,64 @@ export function TaskScreen({ task, initialFiles, onBack, onRun }: TaskScreenProp
 
 function FileRow({
   file,
+  index,
+  total,
   accepted,
+  reorderable,
+  dragging,
+  dropTarget,
+  onGrab,
+  onMove,
   onRemove,
 }: {
   file: FileInfo;
+  index: number;
+  total: number;
   accepted: boolean;
+  reorderable: boolean;
+  dragging: boolean;
+  dropTarget: boolean;
+  onGrab: () => void;
+  onMove: (to: number) => void;
   onRemove: () => void;
 }) {
+  const state = `${dragging ? " dragging" : ""}${dropTarget ? " drop-target" : ""}`;
+
   return (
-    <div className="file-row">
+    <div className={`file-row${state}`} data-row={index}>
+      {reorderable && (
+        <button
+          type="button"
+          className="grip"
+          // The handle needs no explanation of its own: a grip beside a
+          // numbered row, in a list about to be combined, says what it is by
+          // being there. The label below is for screen readers, which cannot
+          // see either the grip or the number.
+          aria-label={`Move ${file.name}, currently ${index + 1} of ${total}`}
+          onPointerDown={(e) => {
+            // Stops the press turning into a text selection or a native drag
+            // while the row is being carried.
+            e.preventDefault();
+            onGrab();
+          }}
+          // The same reordering without a pointer, for anyone using the
+          // keyboard. Dragging is otherwise the only way, and dragging cannot
+          // be done from a keyboard at all.
+          onKeyDown={(e) => {
+            if (e.key === "ArrowUp") {
+              e.preventDefault();
+              onMove(index - 1);
+            }
+            if (e.key === "ArrowDown") {
+              e.preventDefault();
+              onMove(index + 1);
+            }
+          }}
+        >
+          <Icon name="grip" size={16} />
+        </button>
+      )}
+      {reorderable && <span className="filemeta">{index + 1}</span>}
       <Icon name={iconFor(file.category)} size={18} />
       <span className="filename" style={{ flex: 1 }}>
         {file.name}
@@ -227,7 +353,22 @@ function FileRow({
   );
 }
 
-function OptionControl({
+// Wrapped once here rather than in each branch below, so every kind of
+// control explains itself the same way and a new one cannot forget to.
+function OptionControl(props: {
+  option: TaskOption;
+  value: unknown;
+  onChange: (v: unknown) => void;
+}) {
+  if (!props.option.help) return <OptionBody {...props} />;
+  return (
+    <Tooltip text={props.option.help}>
+      <OptionBody {...props} />
+    </Tooltip>
+  );
+}
+
+function OptionBody({
   option,
   value,
   onChange,

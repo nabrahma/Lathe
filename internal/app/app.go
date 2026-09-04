@@ -251,16 +251,6 @@ func (a *App) ChooseFolder(title string) (string, error) {
 	})
 }
 
-// Reveal shows a finished file in Explorer or Finder.
-func (a *App) Reveal(path string) {
-	runtime.BrowserOpenURL(a.ctx, "file://"+filepath.ToSlash(filepath.Dir(path)))
-}
-
-// Open hands a finished file to whatever application owns it.
-func (a *App) Open(path string) {
-	runtime.BrowserOpenURL(a.ctx, "file://"+filepath.ToSlash(path))
-}
-
 // ---------------------------------------------------------------- job API
 
 // Submit queues a job and returns it immediately.

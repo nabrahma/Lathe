@@ -42,6 +42,8 @@ export interface TaskOption {
   step?: number;
   advanced: boolean;
   placeholder?: string;
+  /** One sentence saying what the control does, shown on hover. */
+  help?: string;
 }
 
 export interface Task {
@@ -57,6 +59,12 @@ export interface Task {
   options: TaskOption[];
   requiredTier: number;
   engine: string;
+  /** True only for the tasks whose purpose is to make a file smaller, which
+   * are the only ones where a before-and-after size means anything. */
+  shrinksFile: boolean;
+  /** True where the inputs are combined into one document in the order given,
+   * which is the only case in which rearranging the list changes anything. */
+  orderMatters: boolean;
   /** False when the task needs a component that is not installed yet. */
   available: boolean;
   downloadMB: number;
@@ -121,7 +129,6 @@ export interface Component {
   downloadBytes: number;
   installedBytes: number;
   version: string;
-  systemOnly: boolean;
 }
 
 export interface ComponentStatus {
@@ -131,6 +138,13 @@ export interface ComponentStatus {
   path?: string;
   diskBytes?: number;
   problem?: string;
+  // Whether Lathe can fetch this component on this machine. It is a property
+  // of the platform, not of the component: Ghostscript downloads on Windows
+  // and has to be found on Linux.
+  downloadable: boolean;
+  // Whether installing it raises the Windows permission prompt, so the button
+  // can say so beforehand.
+  elevates: boolean;
 }
 
 export interface ComponentProgress {

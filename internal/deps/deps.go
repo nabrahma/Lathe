@@ -68,16 +68,27 @@ type Component struct {
 	// or the single key "any" for a platform-independent file.
 	Sources map[string]Source `json:"-"`
 
-	// SystemOnly marks a component Lathe detects rather than downloads,
-	// because its publisher ships platform installers rather than portable,
-	// checksummed archives. Installing an unverified binary would defeat the
-	// checksum rule, so Lathe looks for an existing installation instead.
-	SystemOnly bool `json:"systemOnly"`
 	// SearchPaths are the usual install locations, searched after PATH.
 	SearchPaths []string `json:"-"`
-	// InstallHint is per-GOOS advice shown when a SystemOnly component is
-	// missing. It names the command to run, not a concept to look up.
+	// InstallHint is per-GOOS advice shown when a component cannot be
+	// downloaded on this platform. It names the command to run, not a concept
+	// to look up.
 	InstallHint map[string]string `json:"-"`
+}
+
+// SourceFor returns where this component comes from on the machine it is
+// running on, and whether it can be fetched here at all.
+//
+// Whether Lathe can install something is a property of the platform, not of
+// the component: the same Ghostscript that has to be found on a Linux machine,
+// because Artifex publishes only source there, is a signed installer on
+// Windows that Lathe can fetch and run.
+func (c Component) SourceFor() (Source, bool) {
+	if src, ok := c.Sources[platformKey()]; ok {
+		return src, true
+	}
+	src, ok := c.Sources["any"]
+	return src, ok
 }
 
 // winExt is the extension to append on Windows, and nothing elsewhere.
@@ -123,8 +134,27 @@ type Source struct {
 	// Version is the build actually published at URL. It can differ per
 	// platform, because the three FFmpeg distributors do not release together.
 	Version string
+
+	// InstallerArgs runs the downloaded file as the publisher's own installer
+	// rather than unpacking it as an archive, for the projects that ship one
+	// and nothing else. The literal "{{dir}}" is replaced with the directory
+	// the component must end up in.
+	//
+	// Both installers used this way are NSIS, whose /D switch has two rules
+	// worth knowing before editing anything here: it must be the final
+	// argument, and it must not be quoted even when the path contains a space.
+	// runInstaller is what keeps the second rule.
+	InstallerArgs []string
+
+	// Elevates records that running the installer raises a Windows permission
+	// prompt, because its manifest asks for administrator rights. It exists so
+	// the interface can warn someone before the prompt appears rather than
+	// after, which is the difference between an expected step and an alarming
+	// one.
+	Elevates bool
 	// Rolling marks a URL whose contents change when upstream publishes a new
-	// release, which invalidates SHA256. scripts/checksums refreshes these.
+	// release, which invalidates SHA256. Refresh one with:
+	//   curl -sL <url> | sha256sum
 	Rolling bool
 }
 
@@ -138,6 +168,13 @@ type Status struct {
 	Path      string `json:"path,omitempty"`
 	DiskBytes int64  `json:"diskBytes,omitempty"`
 	Problem   string `json:"problem,omitempty"`
+
+	// Downloadable is whether Lathe can fetch this component on this machine,
+	// which decides between offering a button and offering advice.
+	Downloadable bool `json:"downloadable"`
+	// Elevates is whether installing it raises a Windows permission prompt, so
+	// the interface can say so before the prompt appears.
+	Elevates bool `json:"elevates"`
 }
 
 // Progress reports a download or install in flight.
@@ -276,10 +313,15 @@ func (m *manager) Status(ctx context.Context) []Status {
 		// The probe's own error is engineer-facing and never shown: "component
 		// is not installed" beside a Download button tells the user nothing
 		// they cannot already see.
+		src, downloadable := c.SourceFor()
+		s.Downloadable = downloadable
+		s.Elevates = downloadable && src.Elevates
+
 		switch {
 		case p.usable:
 			s.Problem = ""
-		case c.SystemOnly:
+		case !downloadable:
+			// Nothing to offer but advice, so the advice had better be exact.
 			s.Problem = c.Hint()
 		case s.Installed:
 			s.Problem = "This component is installed but does not run. Removing and downloading it again usually fixes it."

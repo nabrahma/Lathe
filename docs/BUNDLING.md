@@ -18,9 +18,10 @@ it.**
 | Tier | Contents | Size | When |
 |---|---|---:|---|
 | **Core** | pdfcpu, the Go image codecs, the app | 18.1 MB | Always, in the download |
-| **Text recognition** | Tesseract and its language data | detected | First OCR task |
+| **Text recognition** | Tesseract and its language data | 50 MB on Windows, detected elsewhere | First OCR task |
 | **Video and photos** | FFmpeg | 111 MB | First video task, or first HEIC |
 | **Office documents** | LibreOffice | detected | First Word or Excel task |
+| **Stronger PDF compression** | Ghostscript | 65 MB on Windows, detected elsewhere | Never required |
 
 Fifteen of the thirty tasks, every PDF and image operation, need nothing
 beyond the core download. That is deliberate: the tasks people search for most
@@ -36,20 +37,56 @@ binary.** A file that does not match is deleted, not used. This is not
 belt-and-braces: Lathe is writing an executable onto someone else's machine,
 and that is exactly the supply chain an attacker wants.
 
-That rule then decides which components can be downloaded at all:
+That rule constrains *what* can be fetched, not whether it has to be an
+archive. Three shapes exist:
 
-- **FFmpeg publishes portable, checksummed static builds for all three
-  platforms.** So Lathe downloads it, verifies it, and installs it atomically.
-- **Tesseract, LibreOffice and Ghostscript ship platform installers, not
-  portable archives.**
-  There is no archive of LibreOffice with a published SHA-256 that Lathe could
-  unpack into a private directory. The options were to bundle an unverified
-  binary from a third party, which would make the checksum rule theatre, or to
-  detect an existing installation and say plainly what to install when there is
-  none. Lathe does the second.
+- **A portable archive.** FFmpeg publishes checksummed static builds for all
+  three platforms, so Lathe downloads one, verifies it and installs it
+  atomically into its own directory.
+- **The publisher's own installer.** On Windows, Tesseract and Ghostscript ship
+  a setup program and nothing portable. Lathe pins the exact setup file by
+  SHA-256, exactly as it does an archive, and runs it into its own component
+  folder rather than into the system. What runs is byte-for-byte the file the
+  checksum was taken from, and removing the component is deleting a directory.
+- **Neither.** LibreOffice everywhere, and Tesseract and Ghostscript on macOS
+  and Linux, come from a package manager. Installing through one needs a root
+  password, which Lathe has no business asking for, so it detects an existing
+  installation and says exactly what to run when there is none.
 
-If that changes upstream, these become downloads like FFmpeg; the machinery is
-already there and only the manifest entry needs updating.
+Which shape applies is a property of the platform rather than of the project,
+so it lives on the per-platform `Source` and not on the component.
+
+### Running an installer, and the permission prompt
+
+Both Windows installers ask for administrator rights in their manifests:
+Tesseract requests the highest the account holds, Ghostscript requires
+administrator outright. Two consequences fall out of that, and both are
+load-bearing.
+
+`os/exec` cannot start them at all. It calls `CreateProcess`, which refuses a
+program that requests elevation with `ERROR_ELEVATION_REQUIRED` and never
+offers the user a choice. Raising the prompt needs `ShellExecuteEx` with the
+`runas` verb, which is why `installer_windows.go` exists rather than a
+two-line `exec.Command`.
+
+The prompt is then announced before it appears. An unexplained Windows
+permission dialog, raised moments after someone pressed a download button, is
+indistinguishable from the thing they have been taught to refuse, and the safe
+response to that is No. The settings screen says Windows will ask, the button
+reads "Download and install", and declining is treated as a decision rather
+than an error: the component is simply not installed, and the message says how
+to change your mind.
+
+NSIS takes the destination as `/D=`, which has two rules that are easy to
+break silently. It must be the final argument, which
+`TestTheDestinationIsTheFinalInstallerArgument` enforces over the manifest, and
+it must not be quoted even when the path contains a space, which is why the
+arguments are passed as one string rather than through `os/exec` quoting. An
+account named with a space would otherwise install into a directory whose name
+begins with a quotation mark.
+
+If a publisher starts shipping a portable archive, the component becomes a
+download like FFmpeg and only the manifest entry changes.
 
 A component already on the machine is always preferred. Someone who has FFmpeg
 installed is never asked to download a second copy of it.

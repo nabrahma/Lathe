@@ -14,7 +14,8 @@ What is *not* in that number, by design:
 | Component | Size | When |
 |---|---:|---|
 | Video and photo support (FFmpeg) | 111 MB download | First video task, or the first HEIC photo |
-| Text recognition (Tesseract) | detected, not downloaded | First OCR task |
+| Text recognition (Tesseract) | 50 MB on Windows, detected elsewhere | First OCR task |
+| Stronger PDF compression (Ghostscript) | 65 MB on Windows, detected elsewhere | Never required |
 | Office documents (LibreOffice) | detected, not downloaded | First Word or Excel task |
 
 Regenerate with `make build`, then `bash scripts/size-budget.sh`, which is the

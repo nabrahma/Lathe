@@ -69,6 +69,9 @@ still runs on the built-in path. The consequence worth knowing is that the same
 file compresses further on a machine that has Ghostscript than on one that does
 not.
 
-Bundling it instead was rejected for the reason Tesseract and LibreOffice are
-detected rather than downloaded: Artifex ships platform installers, not
-portable checksummed archives. See `BUNDLING.md`.
+Bundling it instead was rejected on the licence: Ghostscript is AGPL-3.0, and
+fetching it at runtime as a separate process keeps it out of Lathe's own
+licensing. On Windows, Lathe downloads and runs Artifex's own installer, pinned
+by checksum, into its own folder; on macOS and Linux, where the answer is a
+package manager and a root password, it is detected instead. See
+`BUNDLING.md`.

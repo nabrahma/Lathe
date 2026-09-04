@@ -55,12 +55,15 @@ func pdfTasks() []Task {
 	return []Task{
 		{
 			ID: "pdf.compress", Name: "Compress PDF", Description: "Make a PDF smaller",
-			Category: CategoryPDF, Icon: "compress", Verb: "Compress",
+			ShrinksFile: true,
+			Category:    CategoryPDF, Icon: "compress", Verb: "Compress",
 			Accepts: pdfIn, MinInputs: 1, MaxInputs: 1,
 			Engine: EnginePDF, RequiredTier: TierCore,
 			Options: []Option{
 				{ID: "quality", Label: "Quality", Type: OptionChoice, Default: "medium", Choices: qualityChoices},
 				{ID: "imageDPI", Label: "Image resolution", Type: OptionRange, Default: 150,
+					Help: "Dots per inch for the pictures inside the PDF. Lower is smaller; " +
+						"150 is fine on screen, 300 is what a printer wants.",
 					Min: 72, Max: 600, Step: 6, Advanced: true},
 				{ID: "password", Label: "Password", Type: OptionPassword, Advanced: true,
 					Placeholder: "Only if the PDF is protected"},
@@ -68,11 +71,14 @@ func pdfTasks() []Task {
 		},
 		{
 			ID: "pdf.merge", Name: "Merge PDFs", Description: "Combine several PDFs into one",
-			Category: CategoryPDF, Icon: "merge", Verb: "Merge",
+			OrderMatters: true,
+			Category:     CategoryPDF, Icon: "merge", Verb: "Merge",
 			Accepts: pdfIn, MinInputs: 2, MaxInputs: 0,
 			Engine: EnginePDF, RequiredTier: TierCore,
 			Options: []Option{
-				{ID: "bookmarks", Label: "Add a bookmark per file", Type: OptionToggle, Default: true},
+				{ID: "bookmarks", Label: "Add a bookmark per file", Type: OptionToggle, Default: true,
+					Help: "Adds a contents entry for each file you merged, so a reader can " +
+						"jump straight to where each one starts."},
 			},
 		},
 		{
@@ -129,7 +135,9 @@ func pdfTasks() []Task {
 			Engine: EnginePDF, RequiredTier: TierCore,
 			Options: []Option{
 				{ID: "text", Label: "Text", Type: OptionText, Default: "DRAFT", Placeholder: "DRAFT"},
-				{ID: "opacity", Label: "Strength", Type: OptionRange, Default: 0.3, Min: 0.05, Max: 1, Step: 0.05},
+				{ID: "opacity", Label: "Strength", Type: OptionRange, Default: 0.3, Min: 0.05, Max: 1, Step: 0.05,
+					Help: "How solid the stamp is. Low leaves the page readable underneath; " +
+						"high makes the text hard to miss and hard to see past."},
 				{ID: "position", Label: "Position", Type: OptionChoice, Default: "center", Choices: []Choice{
 					{Value: "center", Label: "Across the middle"},
 					{Value: "diagonal", Label: "Diagonally"},
@@ -171,7 +179,8 @@ func pdfTasks() []Task {
 		},
 		{
 			ID: "pdf.from-images", Name: "Images to PDF", Description: "Combine pictures into one PDF",
-			Category: CategoryPDF, Icon: "pdf", Verb: "Make PDF",
+			OrderMatters: true,
+			Category:     CategoryPDF, Icon: "pdf", Verb: "Make PDF",
 			Accepts: imageIn, MinInputs: 1, MaxInputs: 0,
 			Engine: EnginePDF, RequiredTier: TierCore,
 			Options: []Option{
@@ -209,7 +218,8 @@ func imageTasks() []Task {
 		},
 		{
 			ID: "image.compress", Name: "Compress image", Description: "Make a picture smaller",
-			Category: CategoryImage, Icon: "compress", Verb: "Compress",
+			ShrinksFile: true,
+			Category:    CategoryImage, Icon: "compress", Verb: "Compress",
 			Accepts: imageIn, MinInputs: 1, MaxInputs: 0,
 			Engine: EngineImage, RequiredTier: TierCore,
 			Options: []Option{
@@ -263,13 +273,16 @@ func textTasks() []Task {
 			Options: []Option{
 				{ID: "lang", Label: "Language", Type: OptionText, Default: "eng", Placeholder: "eng"},
 				{ID: "enhance", Label: "Enhance the image first", Type: OptionToggle, Default: true},
-				{ID: "psm", Label: "Page layout", Type: OptionChoice, Default: "auto", Advanced: true, Choices: []Choice{
-					{Value: "auto", Label: "Detect automatically"},
-					{Value: "block", Label: "One block of text"},
-					{Value: "line", Label: "A single line"},
-					{Value: "word", Label: "A single word"},
-					{Value: "sparse", Label: "Scattered text"},
-				}},
+				{ID: "psm", Label: "Page layout", Type: OptionChoice, Default: "auto", Advanced: true,
+					Help: "How the page is arranged. Leave it on automatic unless the result " +
+						"comes back jumbled, which usually means columns were read across.",
+					Choices: []Choice{
+						{Value: "auto", Label: "Detect automatically"},
+						{Value: "block", Label: "One block of text"},
+						{Value: "line", Label: "A single line"},
+						{Value: "word", Label: "A single word"},
+						{Value: "sparse", Label: "Scattered text"},
+					}},
 			},
 		},
 		{
@@ -369,7 +382,8 @@ func mediaTasks() []Task {
 		},
 		{
 			ID: "media.compress-video", Name: "Compress video", Description: "Make a video smaller",
-			Category: CategoryMedia, Icon: "compress", Verb: "Compress",
+			ShrinksFile: true,
+			Category:    CategoryMedia, Icon: "compress", Verb: "Compress",
 			Accepts: videoIn, MinInputs: 1, MaxInputs: 0,
 			Engine: EngineMedia, RequiredTier: TierMedia,
 			Options: []Option{

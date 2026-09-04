@@ -53,25 +53,17 @@ func (m *manager) Ensure(ctx context.Context, id string, progress func(Progress)
 		return nil
 	}
 
-	if c.SystemOnly {
-		// Nothing to download: this component is detected, not installed by
-		// Lathe. Say what to install rather than failing silently.
+	src, ok := c.SourceFor()
+	if !ok {
+		// Nothing to fetch on this platform, so this component is detected
+		// rather than installed by Lathe. Say what to install rather than
+		// failing silently.
 		hint := c.Hint()
 		if hint == "" {
 			hint = "Install it, then restart Lathe."
 		}
 		return usererr.New(usererr.CodeComponentMissing,
 			fmt.Sprintf("%s isn't installed on this computer. %s", c.DisplayName, hint),
-			usererr.ActionCopyDetails)
-	}
-
-	src, ok := c.Sources[platformKey()]
-	if !ok {
-		src, ok = c.Sources["any"]
-	}
-	if !ok {
-		return usererr.New(usererr.CodeComponentMissing,
-			fmt.Sprintf("%s isn't available for this kind of computer yet.", c.DisplayName),
 			usererr.ActionCopyDetails)
 	}
 
@@ -98,20 +90,28 @@ func (m *manager) Ensure(ctx context.Context, id string, progress func(Progress)
 		return err
 	}
 
-	progress(Progress{ComponentID: id, Stage: "Installing", Fraction: -1})
-	unpacked := filepath.Join(staging, "unpacked")
-	if err := extract(archive, unpacked, src.StripPrefix); err != nil {
-		return err
-	}
-
-	// Atomic install: a partially extracted component must never be visible as
-	// installed, so the final directory appears in one move.
 	final := m.dirOf(id)
-	_ = os.RemoveAll(final)
-	if err := os.Rename(unpacked, final); err != nil {
-		return usererr.Wrap(err, usererr.CodeNotWritable,
-			fmt.Sprintf("%s downloaded but couldn't be installed.", c.DisplayName),
-			usererr.ActionRetry)
+
+	if len(src.InstallerArgs) > 0 {
+		progress(Progress{ComponentID: id, Stage: "Running the installer", Fraction: -1})
+		if err := m.runPublisherInstaller(ctx, c, src, archive, final); err != nil {
+			return err
+		}
+	} else {
+		progress(Progress{ComponentID: id, Stage: "Installing", Fraction: -1})
+		unpacked := filepath.Join(staging, "unpacked")
+		if err := extract(archive, unpacked, src.StripPrefix); err != nil {
+			return err
+		}
+
+		// Atomic install: a partially extracted component must never be
+		// visible as installed, so the final directory appears in one move.
+		_ = os.RemoveAll(final)
+		if err := os.Rename(unpacked, final); err != nil {
+			return usererr.Wrap(err, usererr.CodeNotWritable,
+				fmt.Sprintf("%s downloaded but couldn't be installed.", c.DisplayName),
+				usererr.ActionRetry)
+		}
 	}
 
 	m.forget(id)

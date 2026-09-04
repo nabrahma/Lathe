@@ -28,10 +28,10 @@ each keeps its own licence.
 | Component | Licence | How Lathe gets it |
 |---|---|---|
 | [FFmpeg](https://ffmpeg.org) | GPL-3.0 (the static builds Lathe fetches) | Downloaded on request, checksum-verified |
-| [Tesseract](https://github.com/tesseract-ocr/tesseract) | Apache-2.0 | Detected on your system |
+| [Tesseract](https://github.com/tesseract-ocr/tesseract) | Apache-2.0 | Downloaded and installed on request on Windows, detected elsewhere |
 | [tessdata_fast](https://github.com/tesseract-ocr/tessdata_fast) | Apache-2.0 | Downloaded on request |
 | [LibreOffice](https://www.libreoffice.org) | MPL-2.0 | Detected on your system |
-| [Ghostscript](https://www.ghostscript.com) | AGPL-3.0 | Detected on your system, optional |
+| [Ghostscript](https://www.ghostscript.com) | AGPL-3.0 | Downloaded and installed on request on Windows, detected elsewhere, optional |
 
 **Why this distinction matters.** The FFmpeg static builds are GPL. Because
 Lathe downloads them at runtime rather than bundling them, and communicates

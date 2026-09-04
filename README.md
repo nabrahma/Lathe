@@ -108,7 +108,8 @@ install it and no task requires it. The reasoning is in
 |---|---:|---|
 | **Lathe itself** | **18.1 MB** | The download |
 | Video and photo support (FFmpeg) | 111 MB | First video task, or the first HEIC photo |
-| Text recognition (Tesseract) | detected, not downloaded | First OCR task |
+| Text recognition (Tesseract) | 50 MB on Windows, detected elsewhere | First OCR task |
+| Stronger PDF compression (Ghostscript) | 65 MB on Windows, detected elsewhere | Optional, never required |
 | Office documents (LibreOffice) | detected, not downloaded | First Word or Excel task |
 
 PDF and image work needs none of that: it is compiled into the binary and
@@ -117,11 +118,18 @@ big it is *before* you commit, then works offline afterwards.
 
 ![The settings screen, showing what is installed](docs/screenshots/05-settings.png)
 
-Tesseract and LibreOffice are detected rather than downloaded. Neither
-publishes a portable, checksummed archive for all three platforms, and
-installing an unverified binary onto someone's machine would defeat the point
-of verifying downloads at all. If Lathe cannot find them it says exactly what
-to install. See [BUNDLING.md](docs/BUNDLING.md).
+How a component arrives depends on the platform, not on the project. On
+Windows, Tesseract and Ghostscript publish a setup program and nothing
+portable, so Lathe downloads the exact file it has a checksum for and runs it
+into its own folder. Windows asks your permission first, because both
+installers request it, and Lathe says so beside the button rather than letting
+the prompt arrive unexplained. Removing the component afterwards is Lathe
+deleting its own directory.
+
+On macOS and Linux those two come from a package manager, which needs a root
+password Lathe has no business asking for, so there they are detected and Lathe
+tells you the exact command to run. LibreOffice is detected everywhere. See
+[BUNDLING.md](docs/BUNDLING.md).
 
 Measured, not estimated: [docs/evidence/binary-size.md](docs/evidence/binary-size.md).
 

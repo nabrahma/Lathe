@@ -5,17 +5,20 @@ package deps
 // None is a placeholder, and the installer refuses any component whose
 // checksum is empty rather than trusting an unverified download.
 //
-// Not every dependency can be distributed this way. FFmpeg publishes portable,
-// checksummed static builds for all three platforms, so Lathe downloads it.
-// Tesseract and LibreOffice ship as platform installers rather than portable
-// archives, so Lathe detects an existing installation instead of downloading
-// one, and says plainly what to install when it finds nothing. See
+// Not every dependency arrives the same way, and which way is a property of
+// the platform rather than of the project. FFmpeg publishes portable static
+// builds everywhere, so Lathe unpacks an archive. Tesseract and Ghostscript
+// publish a Windows setup program and nothing portable, so there Lathe runs
+// the installer, pinned by checksum like everything else, into its own folder.
+// On macOS and Linux those two are a package manager away, which needs a root
+// password Lathe has no business asking for, so they are detected instead and
+// Lathe says exactly what to run. LibreOffice is detected everywhere. See
 // docs/BUNDLING.md.
 
 // ffmpegVersion is the release pinned for Windows and macOS. Linux static
 // builds come from a different publisher on its own schedule, so its version
 // is recorded on that Source instead. Changing any of this means recomputing
-// the checksums; scripts/checksums does that.
+// the checksums, which is `curl -sL <url> | sha256sum` for each one changed.
 const ffmpegVersion = "9.0.1"
 
 // Manifest returns every component Lathe knows about.
@@ -76,19 +79,41 @@ func ffmpeg() Component {
 	}
 }
 
-// tesseract is detected rather than downloaded: no publisher offers a
-// portable, checksummed archive for all three platforms, and shipping an
-// unverified binary would undo the point of the checksum rule.
+// tesseractVersion is the UB-Mannheim build pinned for Windows. It is taken
+// from their GitHub release rather than their own download host, which refuses
+// requests that do not come from a browser: a download button pointing at a
+// server that resets the connection is worse than no button.
+const tesseractVersion = "5.4.0.20240606"
+
+// tesseract downloads on Windows and is detected everywhere else. UB-Mannheim
+// publishes a setup program, which Lathe runs into its own component folder;
+// on macOS and Linux the answer is a package manager, which needs a root
+// password Lathe should not be asking for.
 func tesseract() Component {
 	return Component{
-		ID:          "tesseract",
-		Tier:        TierBundled,
-		DisplayName: "Text recognition",
-		Explanation: "Reading text out of images uses Tesseract, a free open-source OCR engine.",
-		Version:     "system",
-		Binaries:    []string{"tesseract"},
-		VersionArgs: []string{"--version"},
-		SystemOnly:  true,
+		ID:             "tesseract",
+		Tier:           TierBundled,
+		DisplayName:    "Text recognition",
+		Explanation:    "Reading text out of images uses Tesseract, a free open-source OCR engine.",
+		Version:        "system",
+		Binaries:       []string{"tesseract"},
+		VersionArgs:    []string{"--version"},
+		DownloadBytes:  50175248,
+		InstalledBytes: 180 << 20,
+		Sources: map[string]Source{
+			"windows/amd64": {
+				URL: "https://github.com/UB-Mannheim/tesseract/releases/download/v" +
+					tesseractVersion + "/tesseract-ocr-w64-setup-" + tesseractVersion + ".exe",
+				SHA256:  "c885fff6998e0608ba4bb8ab51436e1c6775c2bafc2559a19b423e18678b60c9",
+				Version: tesseractVersion,
+				// NSIS: /S is silent and /D is the destination. /D takes the
+				// rest of the line literally, so it goes last and unquoted.
+				InstallerArgs: []string{"/S", "/D=" + dirPlaceholder},
+				// The manifest asks for the highest rights the account holds,
+				// so an administrator sees a permission prompt.
+				Elevates: true,
+			},
+		},
 		SearchPaths: []string{
 			`C:\Program Files\Tesseract-OCR`,
 			`C:\Program Files (x86)\Tesseract-OCR`,
@@ -116,7 +141,6 @@ func libreOffice() Component {
 		Binaries:    []string{"soffice"},
 		VersionArgs: []string{"--version"},
 		WindowsExt:  ".com",
-		SystemOnly:  true,
 		SearchPaths: []string{
 			`C:\Program Files\LibreOffice\program`,
 			`C:\Program Files (x86)\LibreOffice\program`,
@@ -133,10 +157,14 @@ func libreOffice() Component {
 	}
 }
 
+// ghostscriptVersion is the Artifex build pinned for Windows.
+const ghostscriptVersion = "10.07.1"
+
 // ghostscript makes Compress PDF markedly better when it is present, and is
 // deliberately optional: no task requires it, so a PDF still compresses
-// without it using the built-in path. It is detected rather than downloaded
-// because Artifex ships platform installers, not portable archives.
+// without it using the built-in path. Artifex publishes a Windows installer
+// and, elsewhere, source only, so it downloads on Windows and is detected on
+// the platforms where the answer is a package manager.
 func ghostscript() Component {
 	return Component{
 		ID:          "ghostscript",
@@ -145,10 +173,22 @@ func ghostscript() Component {
 		Explanation: "Ghostscript, a free open-source PDF engine, can lower the resolution of " +
 			"scanned pages as well as their quality. Without it Lathe still compresses PDFs, " +
 			"just less far.",
-		Version:     "system",
-		Binaries:    []string{"gs"},
-		VersionArgs: []string{"--version"},
-		SystemOnly:  true,
+		Version:        "system",
+		Binaries:       []string{"gs"},
+		VersionArgs:    []string{"--version"},
+		DownloadBytes:  64966216,
+		InstalledBytes: 130 << 20,
+		Sources: map[string]Source{
+			"windows/amd64": {
+				URL:           "https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs10071/gs10071w64.exe",
+				SHA256:        "3a4c28d0aac47aa7cccd35a5932c55110376e9dbd966898dde388b7faba444a4",
+				Version:       ghostscriptVersion,
+				InstallerArgs: []string{"/S", "/D=" + dirPlaceholder},
+				// This one asks for administrator outright, so the prompt
+				// appears for every account.
+				Elevates: true,
+			},
+		},
 		// The console build is named differently on Windows, and gswin64c is
 		// the one that writes to stdout instead of opening a window.
 		WindowsNames: map[string]string{"gs": "gswin64c"},

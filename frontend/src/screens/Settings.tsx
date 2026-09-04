@@ -220,6 +220,16 @@ function ComponentRow({
         {!status.usable && status.problem && !busy && (
           <span className="file-warn">{status.problem}</span>
         )}
+
+        {/*
+         * Said before the prompt appears rather than after. An unexplained
+         * Windows permission dialog raised by a program the user has just
+         * asked to download something looks like the thing they were warned
+         * about, and the safe response to that is to click No.
+         */}
+        {!status.usable && status.downloadable && status.elevates && !busy && (
+          <span className="filemeta">Windows will ask for permission to install this.</span>
+        )}
       </div>
 
       <span className="filemeta">
@@ -236,10 +246,10 @@ function ComponentRow({
         <button type="button" className="btn btn-ghost" onClick={onRemove}>
           Remove
         </button>
-      ) : status.usable ? null : component.systemOnly ? null : (
+      ) : status.usable ? null : !status.downloadable ? null : (
         <button type="button" className="btn btn-secondary" disabled={busy} onClick={onInstall}>
           <Icon name="download" size={14} />
-          Download
+          {status.elevates ? "Download and install" : "Download"}
         </button>
       )}
     </div>
